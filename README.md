@@ -22,6 +22,11 @@
 
 This fork focuses on running both models safely inside a modern shared ComfyUI environment. It does **not** install the official YuE2 wheel through pip, does **not** replace ComfyUI's Torch stack, and can load MERT2 entirely from a local model folder.
 
+> **Fork notice:** This repository is a compatibility-focused fork of
+> [`piscesbody/ComfyUI-YuE2`](https://github.com/piscesbody/ComfyUI-YuE2),
+> updated for dependency-safe installation, current ComfyUI environments,
+> modern Transformers releases, local MERT2 loading, and an English interface.
+
 ## Workflows
 
 | Goal | Node path | Reference audio |
@@ -203,8 +208,13 @@ Linux and other compatible NVIDIA GPUs should work, but the full matrix has not 
 
 ## Credits and license
 
-This repository is an independent ComfyUI integration and compatibility fork. Model architecture, inference code, and weights belong to their respective upstream projects:
+This repository is derived from
+[`piscesbody/ComfyUI-YuE2`](https://github.com/piscesbody/ComfyUI-YuE2) and is
+maintained as a compatibility-focused fork. The original node implementation,
+model architecture, inference code, and weights belong to their respective
+upstream projects:
 
+- [`piscesbody/ComfyUI-YuE2`](https://github.com/piscesbody/ComfyUI-YuE2)
 - [`multimodal-art-projection/YuE`](https://github.com/multimodal-art-projection/YuE)
 - [`m-a-p/YuE2-3B`](https://huggingface.co/m-a-p/YuE2-3B)
 - [`m-a-p/SheetSage2`](https://huggingface.co/m-a-p/SheetSage2)
