@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-labelledby="title desc">
+  <title id="title">ComfyUI-YuE2</title>
+  <desc id="desc">Safe local song generation and audio-to-score workflows for ComfyUI, illustrated as lyrics and reference audio flowing through YuE2 and SheetSage2.</desc>
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d1a27"/>
+      <stop offset="1" stop-color="#09111a"/>
+    </linearGradient>
+    <linearGradient id="flow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#55d6be"/>
+      <stop offset="1" stop-color="#ffb454"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="400" rx="28" fill="#071019"/>
+  <rect x="1" y="1" width="1198" height="398" rx="27" fill="none" stroke="#203446" stroke-width="2"/>
+
+  <g id="title-block" transform="translate(64 52)">
+    <text x="0" y="0" fill="#55d6be" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700" letter-spacing="2">COMFYUI CUSTOM NODES · LOCAL FIRST</text>
+    <text x="0" y="76" fill="#f4f7fa" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="68" font-weight="750">ComfyUI–YuE2</text>
+    <text x="0" y="123" fill="#afbdc9" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25">Generate full songs. Transcribe audio into editable scores.</text>
+    <text x="0" y="160" fill="#afbdc9" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25">Keep ComfyUI’s Python environment intact.</text>
+
+    <g transform="translate(0 214)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="17" font-weight="650">
+      <rect width="176" height="42" rx="21" fill="#102b2b" stroke="#2f766d"/>
+      <text x="88" y="27" text-anchor="middle" fill="#7ce3d0">ISOLATED WHEEL</text>
+      <rect x="190" width="162" height="42" rx="21" fill="#272318" stroke="#735d36"/>
+      <text x="271" y="27" text-anchor="middle" fill="#ffc77b">LOCAL MODELS</text>
+      <rect x="366" width="150" height="42" rx="21" fill="#152231" stroke="#35526b"/>
+      <text x="441" y="27" text-anchor="middle" fill="#c6d5e2">EDITABLE ABC</text>
+    </g>
+  </g>
+
+  <g id="project-flow" transform="translate(690 42)">
+    <rect width="446" height="316" rx="22" fill="url(#panel)" stroke="#203b4f" stroke-width="2"/>
+
+    <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="17">
+      <rect x="28" y="30" width="130" height="58" rx="12" fill="#122734" stroke="#365269"/>
+      <text x="93" y="55" text-anchor="middle" fill="#dce7ef">STYLE +</text>
+      <text x="93" y="77" text-anchor="middle" fill="#dce7ef">LYRICS</text>
+
+      <rect x="28" y="228" width="130" height="58" rx="12" fill="#122734" stroke="#365269"/>
+      <text x="93" y="253" text-anchor="middle" fill="#dce7ef">REFERENCE</text>
+      <text x="93" y="275" text-anchor="middle" fill="#dce7ef">AUDIO</text>
+
+      <rect x="208" y="30" width="126" height="58" rx="12" fill="#12322f" stroke="#55d6be"/>
+      <text x="271" y="65" text-anchor="middle" fill="#80ead7" font-weight="700">YuE2</text>
+
+      <rect x="208" y="228" width="126" height="58" rx="12" fill="#2d2517" stroke="#ffb454"/>
+      <text x="271" y="264" text-anchor="middle" fill="#ffca83" font-weight="700">SheetSage2</text>
+
+      <rect x="208" y="128" width="126" height="58" rx="12" fill="#17283a" stroke="#52789a"/>
+      <text x="271" y="153" text-anchor="middle" fill="#dce7ef">ABC SCORE</text>
+      <text x="271" y="175" text-anchor="middle" fill="#8fa9bd">editable</text>
+
+      <rect x="366" y="79" width="52" height="156" rx="26" fill="#101e29" stroke="#38536a"/>
+      <path d="M382 158h5l5-31 7 62 6-46 5 28 6-13h6" fill="none" stroke="url(#flow)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <g fill="none" stroke-width="3" stroke-linecap="round">
+      <path d="M158 59h50" stroke="#55d6be"/>
+      <path d="M271 88v40" stroke="#55d6be"/>
+      <path d="M334 59h27q21 0 21 21" stroke="#55d6be"/>
+      <path d="M158 257h50" stroke="#ffb454"/>
+      <path d="M271 228v-42" stroke="#ffb454"/>
+      <path d="M334 157h27q21 0 21 21" stroke="#52789a"/>
+    </g>
+  </g>
+</svg>

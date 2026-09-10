@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.cache/
+cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+*.log
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local outputs, archives, and test artifacts
+_sep_out/
+_sep_test/
+output/
+.yue2_runtime/
+*.7z
