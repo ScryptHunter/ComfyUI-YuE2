@@ -144,7 +144,11 @@ Let the open road come through
 
 5. Use `cot=full` for an editable melody-and-harmony plan, `cot=melody` for a melody-only cover plan, or `cot=off` for direct generation.
 
-An importable example is available at [`example_workflows/example_workflows.json`](./example_workflows/example_workflows.json).
+Importable workflows:
+
+- [`YuE2_Text_to_Song.json`](./example_workflows/YuE2_Text_to_Song.json) — generate a song from style and lyrics without reference audio.
+- [`YuE2_Reference_Remix.json`](./example_workflows/YuE2_Reference_Remix.json) — transcribe reference audio, edit its ABC plan, and render a remix.
+- [`YuE2_All_Nodes_Showcase.json`](./example_workflows/YuE2_All_Nodes_Showcase.json) — visual overview of the complete node set.
 
 ## Cover workflow
 
