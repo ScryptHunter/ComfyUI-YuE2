@@ -125,21 +125,37 @@ class SheetSage2Transcribe:
                 "save_outputs": ("BOOLEAN", {"default": True,
                     "tooltip": "Save score.abc, MIDI, and LAB files under output/SheetSage2/."}),
             },
+            "optional": {
+                "abc_error_mode": (["strict", "snap_invalid_notes", "skip_invalid_notes", "fallback_full", "return_midi_only"], {
+                    "tooltip": "What to do when SheetSage2 cannot place a note on the ABC grid. Strict reports the original error; recovery modes rebuild a simple score from MIDI."}),
+                "overlap_seconds": ("FLOAT", {"default": -1.0, "min": -1.0, "max": 120.0, "step": 0.5,
+                    "tooltip": "Window overlap override. -1 uses the SheetSage2 preset."}),
+                "lookahead_seconds": ("FLOAT", {"default": -1.0, "min": -1.0, "max": 120.0, "step": 0.5,
+                    "tooltip": "Window look-ahead override. -1 uses the SheetSage2 preset."}),
+                "auto_unload": ("BOOLEAN", {"default": False,
+                    "tooltip": "Release SheetSage2 and MERT2 after transcription to recover VRAM."}),
+            },
         }
 
-    RETURN_TYPES = ("STRING", "STRING", "STRING",)
-    RETURN_NAMES = ("abc", "structure", "info",)
+    # Keep the first three outputs in their original order so saved workflows
+    # continue to receive info on output 2. MIDI is appended as output 3.
+    RETURN_TYPES = ("STRING", "STRING", "STRING", "YUE2_MIDI",)
+    RETURN_NAMES = ("abc", "structure", "info", "midi",)
     OUTPUT_NODE = True
     FUNCTION = "transcribe"
     CATEGORY = "YuE2/SheetSage2"
 
-    def transcribe(self, model, audio, melody_only, preset, max_seconds, save_outputs):
+    def transcribe(self, model, audio, melody_only, preset, max_seconds, save_outputs,
+                   abc_error_mode="strict", overlap_seconds=-1.0,
+                   lookahead_seconds=-1.0, auto_unload=False):
         wav, rate = mono_waveform(audio)
         out_dir = timestamp_dir("SheetSage2") if save_outputs else None
 
-        abc_text, structure_text, result = ss2_model.transcribe(
+        abc_text, structure_text, result, midi = ss2_model.transcribe(
             model, wav, rate, melody_only=melody_only, preset=preset,
-            max_seconds=max_seconds, output_dir=out_dir)
+            max_seconds=max_seconds, output_dir=out_dir,
+            abc_error_mode=abc_error_mode, overlap_seconds=overlap_seconds,
+            lookahead_seconds=lookahead_seconds)
 
         chords = sum(1 for e in (result.get("events") or [])
                      if (e.get("values") or {}).get("chord"))
@@ -150,10 +166,65 @@ class SheetSage2Transcribe:
                 f"elapsed={result.get('elapsed_seconds', 0):.1f}s")
         if result.get("abc_error"):
             info += f" | abc_error: {result['abc_error']}"
+        if result.get("abc_recovery"):
+            info += (f" | recovered={result['abc_recovery']} (simple MIDI-derived ABC; "
+                     "review note timing and harmony)")
+        if not abc_text and abc_error_mode == "return_midi_only":
+            info += " | ABC unavailable; MIDI returned"
         if out_dir:
             info += f" | saved: {out_dir}"
+        if auto_unload:
+            ss2_model.close()
+            info += " | model unloaded"
         print(f"[SheetSage2] {info}")
-        return (abc_text, structure_text, info)
+        return (abc_text, structure_text, info, midi)
+
+
+class SheetSage2Unload:
+    """Explicitly releases the cached SheetSage2/MERT2 model and CUDA memory."""
+
+    DESCRIPTION = "Unloads SheetSage2 and MERT2 from memory after transcription."
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {"model": ("SS2_MODEL",)}}
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("status",)
+    FUNCTION = "unload"
+    OUTPUT_NODE = True
+    CATEGORY = "YuE2/Memory"
+
+    def unload(self, model):
+        del model
+        ss2_model.close()
+        return ("SheetSage2 and MERT2 unloaded",)
+
+
+class SaveMidiFile:
+    """Saves SheetSage2 MIDI bytes without depending on its automatic output mode."""
+
+    DESCRIPTION = "Saves a SheetSage2 MIDI output to ComfyUI's output folder."
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {"midi": ("YUE2_MIDI",), "filename_prefix": ("STRING", {"default": "YuE2/melody"})}}
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("path",)
+    FUNCTION = "save"
+    OUTPUT_NODE = True
+    CATEGORY = "YuE2/ABC & Files"
+
+    def save(self, midi, filename_prefix):
+        import folder_paths
+        folder, filename, counter, _subfolder, _prefix = folder_paths.get_save_image_path(
+            filename_prefix, folder_paths.get_output_directory())
+        os.makedirs(folder, exist_ok=True)
+        path = os.path.join(folder, f"{filename}_{counter:05}_.mid")
+        with open(path, "wb") as f:
+            f.write(bytes(midi or b""))
+        return (path,)
 
 
 class LyricsFormatter:
@@ -548,6 +619,8 @@ class LyricsStructurer:
 NODE_CLASS_MAPPINGS = {
     "SheetSage2Loader": SheetSage2Loader,
     "SheetSage2Transcribe": SheetSage2Transcribe,
+    "SheetSage2Unload": SheetSage2Unload,
+    "YuE2SaveMidiFile": SaveMidiFile,
     "YuE2LyricsFormatter": LyricsFormatter,
     "YuE2LyricsStructurer": LyricsStructurer,
     "YuE2LoadLyricsFile": LoadLyricsFile,
@@ -556,6 +629,8 @@ NODE_CLASS_MAPPINGS = {
 NODE_DISPLAY_NAME_MAPPINGS = {
     "SheetSage2Loader": "SheetSage2 Model Loader",
     "SheetSage2Transcribe": "SheetSage2 Audio Transcriber",
+    "SheetSage2Unload": "SheetSage2 Unload Model",
+    "YuE2SaveMidiFile": "YuE2 MIDI File Saver",
     "YuE2LyricsFormatter": "YuE2 Lyrics Formatter (Timed to Sections)",
     "YuE2LyricsStructurer": "YuE2 Lyrics Structurer (Text to Sections)",
     "YuE2LoadLyricsFile": "YuE2 Lyrics File Loader (LRC/SRT)",

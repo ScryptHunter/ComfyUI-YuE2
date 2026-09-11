@@ -33,7 +33,9 @@ def _try_register(module_name: str, mapping: dict) -> None:
 _failed: dict = {}
 
 _try_register("nodes.yue2", _failed)
+_try_register("nodes.yue2_advanced", _failed)
 _try_register("nodes.sheetsage2", _failed)
+_try_register("nodes.abc_tools", _failed)
 
 if not NODE_CLASS_MAPPINGS:
     print("[ComfyUI-YuE2] No nodes were registered; check dependencies and the errors above")

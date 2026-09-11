@@ -6,6 +6,7 @@ transformsers 5.x 的适配见 ``compat.sheetsage2``；这里只管加载、缓�
 from __future__ import annotations
 
 import gc
+import io
 import os
 
 import torch
@@ -71,7 +72,9 @@ def close() -> None:
 def transcribe(model, waveform: torch.Tensor, sample_rate: int, *,
                melody_only: bool = False, preset: str = "default",
                max_seconds: float = 0.0, output_dir: str | None = None,
-               progress=None):
+               progress=None, abc_error_mode: str = "strict",
+               overlap_seconds: float = -1.0,
+               lookahead_seconds: float = -1.0):
     """转录音频。
 
     Args:
@@ -102,12 +105,136 @@ def transcribe(model, waveform: torch.Tensor, sample_rate: int, *,
         kwargs["max_seconds"] = float(max_seconds)
     if progress is not None:
         kwargs["progress"] = progress
+    if overlap_seconds >= 0:
+        kwargs["overlap_seconds"] = float(overlap_seconds)
+    if lookahead_seconds >= 0:
+        kwargs["lookahead_seconds"] = float(lookahead_seconds)
 
-    result = model.transcribe(wav, sampling_rate=_SAMPLE_RATE,
-                              output_dir=output_dir, **kwargs)
+    try:
+        result = model.transcribe(wav, sampling_rate=_SAMPLE_RATE,
+                                  output_dir=output_dir, **kwargs)
+    except RuntimeError as exc:
+        result = getattr(exc, "result", None)
+        if not isinstance(result, dict) or abc_error_mode == "strict":
+            raise
+        if abc_error_mode == "fallback_full":
+            full_kwargs = dict(kwargs)
+            full_kwargs["melody_only"] = False
+            result = model.transcribe(wav, sampling_rate=_SAMPLE_RATE,
+                                      output_dir=output_dir, **full_kwargs)
+            result = dict(result)
+            result["abc_recovery"] = "fallback_full"
+            result["abc_error"] = str(exc)
+        else:
+            result = dict(result)
+            result.setdefault("abc_error", str(exc))
+
     abc_text = result.get("abc") or ""
+    if not abc_text and abc_error_mode in {"snap_invalid_notes", "skip_invalid_notes"}:
+        abc_text = _fallback_abc_from_midi(result, skip_invalid=abc_error_mode == "skip_invalid_notes")
+        result["abc"] = abc_text
+        result["abc_recovery"] = abc_error_mode
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+            with io.open(os.path.join(output_dir, "score_recovered.abc"), "w", encoding="utf-8") as f:
+                f.write(abc_text)
     structure_text = structure_from_events(result.get("events") or [])
-    return abc_text, structure_text, result
+    midi = result.get("midi") or (result.get("midis") or {}).get("melody") or b""
+    return abc_text, structure_text, result, midi
+
+
+_ABC_PITCH = {0: "C", 1: "^C", 2: "D", 3: "^D", 4: "E", 5: "F",
+              6: "^F", 7: "G", 8: "^G", 9: "A", 10: "^A", 11: "B"}
+
+
+def _midi_note_name(pitch: int) -> str:
+    """Return an explicit-accidental ABC pitch, independent of key signature."""
+    name = _ABC_PITCH[int(pitch) % 12]
+    octave = int(pitch) // 12 - 1
+    if octave >= 5:
+        return name.lower() + "'" * (octave - 5)
+    if octave < 4:
+        return name + "," * (4 - octave)
+    return name
+
+
+def _fallback_abc_from_midi(result: dict, *, skip_invalid: bool = False) -> str:
+    """Build a conservative 1/32-grid ABC score when SheetSage2 ABC export fails.
+
+    SheetSage2 occasionally produces a valid MIDI result but rejects a note that
+    is off its symbolic sub-beat grid.  This recovery path keeps the MIDI as the
+    authority and creates a simple, editable two-voice score.  It intentionally
+    omits chord symbols rather than inventing harmony.
+    """
+    import pretty_midi
+
+    data = result.get("midi") or (result.get("midis") or {}).get("melody")
+    if not data:
+        raise RuntimeError("SheetSage2 did not return ABC or recoverable MIDI data")
+    midi = pretty_midi.PrettyMIDI(io.BytesIO(data))
+    tempi_t, tempi = midi.get_tempo_changes()
+    bpm = float(tempi[0]) if len(tempi) else 120.0
+    bpm = min(300.0, max(30.0, bpm))
+    step_seconds = 60.0 / bpm / 8.0  # L:1/32
+    bar_steps = 32                  # M:4/4
+
+    pitched = [inst for inst in midi.instruments if not inst.is_drum and inst.notes]
+    vocal = [i for i in pitched if "vocal" in (i.name or "").lower()]
+    instrumental = [i for i in pitched if i not in vocal]
+    if not vocal and pitched:
+        vocal, instrumental = [pitched[0]], pitched[1:]
+
+    def events(instruments):
+        rows = []
+        cursor = 0
+        for note in sorted((n for i in instruments for n in i.notes), key=lambda n: (n.start, n.pitch)):
+            start = max(0, int(round(note.start / step_seconds)))
+            end = max(start + 1, int(round(note.end / step_seconds)))
+            if start < cursor:
+                if skip_invalid:
+                    continue
+                start = cursor
+            if end <= start:
+                if skip_invalid:
+                    continue
+                end = start + 1
+            rows.append((start, end, int(note.pitch)))
+            cursor = end
+        return rows
+
+    def duration(n):
+        return "" if n == 1 else str(n)
+
+    def voice_text(rows):
+        if not rows:
+            return "z32 |"
+        out, cursor = [], 0
+        for start, end, pitch in rows:
+            if start > cursor:
+                out.append("z" + duration(start - cursor))
+            remaining = end - start
+            pos = start
+            while remaining:
+                part = min(remaining, bar_steps - (pos % bar_steps))
+                token = _midi_note_name(pitch) + duration(part)
+                remaining -= part
+                pos += part
+                out.append(token + ("-" if remaining else ""))
+                if pos % bar_steps == 0:
+                    out.append("|")
+            cursor = end
+        if cursor % bar_steps:
+            out.append("z" + duration(bar_steps - cursor % bar_steps))
+            out.append("|")
+        return " ".join(out)
+
+    title = str(result.get("title") or "SheetSage2 recovered score").replace("\n", " ")
+    lines = ["X:1", f"T:{title}", "M:4/4", "L:1/32", f"Q:1/4={bpm:.2f}", "K:C"]
+    lines += ["V:Vocal clef=treble name=\"Vocal\"", "[V:Vocal] " + voice_text(events(vocal))]
+    if instrumental:
+        lines += ["V:Ins clef=treble name=\"Instrumental\"",
+                  "[V:Ins] " + voice_text(events(instrumental))]
+    return "\n".join(lines) + "\n"
 
 
 def structure_from_events(events) -> str:

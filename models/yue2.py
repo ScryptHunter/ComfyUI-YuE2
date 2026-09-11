@@ -19,6 +19,16 @@ from .paths import resolve, vae_dir
 _cache: dict = {}
 
 
+def cancelled() -> bool:
+    """Return ComfyUI's interrupt state without requiring ComfyUI during tests."""
+    try:
+        import comfy.model_management as mm
+        check = getattr(mm, "processing_interrupted", None)
+        return bool(check()) if check else False
+    except Exception:
+        return False
+
+
 @contextlib.contextmanager
 def runtime_flags():
     """生成期间应用 YuE2 要求的全局精度开关，结束后恢复原值。"""
@@ -206,7 +216,7 @@ def generate(pipe, *, style: str, lyrics: str, cot: str = "full", seed: int = 83
                 return pipe(style=style, lyrics=lyrics, cot=cot, seed=int(seed),
                             abc=abc, cfg_scale=cfg_scale,
                             abc_sampling=abc_sampling, semantic_sampling=semantic_sampling,
-                            on_token=on_progress)
+                            cancelled=cancelled, on_token=on_progress)
             finally:
                 pipe.decode = orig_decode
                 pipe.vae_core_frames = orig_core
@@ -262,7 +272,7 @@ def generate(pipe, *, style: str, lyrics: str, cot: str = "full", seed: int = 83
                 return pipe(style=style, lyrics=lyrics, cot=cot, seed=int(seed),
                             abc=abc, cfg_scale=cfg_scale,
                             abc_sampling=abc_sampling, semantic_sampling=semantic_sampling,
-                            on_token=on_progress)
+                            cancelled=cancelled, on_token=on_progress)
             finally:
                 pipe.decode = orig_decode
                 pipe.vae_core_frames = orig_core
@@ -271,7 +281,7 @@ def generate(pipe, *, style: str, lyrics: str, cot: str = "full", seed: int = 83
             return pipe(style=style, lyrics=lyrics, cot=cot, seed=int(seed),
                         abc=abc, cfg_scale=cfg_scale,
                         abc_sampling=abc_sampling, semantic_sampling=semantic_sampling,
-                        on_token=on_progress)
+                        cancelled=cancelled, on_token=on_progress)
         finally:
             pipe.vae_core_frames = orig_core
 
@@ -283,4 +293,31 @@ def plan(pipe, *, style: str, lyrics: str, cot: str = "full", seed: int = 831001
     with runtime_flags():
         request = pipe._request(style=style, lyrics=lyrics, cot=cot, seed=int(seed),
                                 abc=abc, cfg_scale=cfg_scale)
-        return pipe.plan(request=request, abc_sampling=abc_sampling, on_token=on_progress)
+        return pipe.plan(request=request, abc_sampling=abc_sampling,
+                         cancelled=cancelled, on_token=on_progress)
+
+
+def render_plan(pipe, plan_result, *, semantic_sampling=None, ode_steps=None,
+                vae_decode="tiled", vae_tile_frames=None):
+    """Run the official semantic -> NAR -> VAE stages for an exact plan object."""
+    with runtime_flags():
+        _with_ode_steps(pipe, ode_steps)
+        semantic = pipe.generate_semantic(
+            plan_result, sampling=semantic_sampling, cancelled=cancelled)
+        latents = pipe.synthesize(semantic, cancelled=cancelled)
+        if cancelled():
+            raise InterruptedError("Cancelled before VAE decode")
+        original_core = pipe.vae_core_frames
+        if vae_tile_frames:
+            pipe.vae_core_frames = int(vae_tile_frames)
+        try:
+            try:
+                audio = pipe.decode(latents, full=vae_decode == "full")
+            except torch.OutOfMemoryError:
+                if vae_decode != "full":
+                    raise
+                torch.cuda.empty_cache()
+                audio = pipe.decode(latents, full=False)
+        finally:
+            pipe.vae_core_frames = original_core
+        return semantic, latents, audio

@@ -50,7 +50,13 @@ def _wheel_candidates(model_path: str | os.PathLike[str]) -> list[Path]:
                 local.append(entry)
         # A wheel in the model directory always wins over one in its parent.
         # Within one directory the highest wheel filename/version wins.
-        found.extend(sorted(local, key=lambda p: p.name, reverse=True))
+        def version_key(candidate: Path):
+            version = _WHEEL_RE.match(candidate.name).group("version")
+            # Numeric releases sort correctly (0.1.10 after 0.1.9) without
+            # adding packaging as a dependency. Text segments remain stable.
+            return tuple((1, int(part)) if part.isdigit() else (0, part.lower())
+                         for part in re.split(r"[._+-]", version))
+        found.extend(sorted(local, key=version_key, reverse=True))
     return found
 
 
@@ -129,7 +135,7 @@ def import_yue2(model_path: str | os.PathLike[str]):
         if exc.name == "yue2":
             raise ModuleNotFoundError(
                 "YuE2 inference library not found. Put "
-                "yue2_infer-0.1.5-py3-none-any.whl in the selected YuE2 model "
+                "a matching yue2_infer-*.whl in the selected YuE2 model "
                 "directory. This node loads it in isolation; do not pip-install it."
             ) from exc
         raise ModuleNotFoundError(

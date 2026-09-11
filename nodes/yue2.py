@@ -11,7 +11,7 @@ from ..models.paths import list_snapshots, vae_options
 from .utils import advance, audio_dict, progress_bar, safe_stem, timestamp_dir
 
 COT_MODES = ["full", "melody", "off"]
-VAE_DECODE_MODES = ["tiled", "full"]
+VAE_DECODE_MODES = ["tiled", "full", "auto"]
 ATTN_BACKENDS = ["auto", "external-flash", "cudnn", "sdpa"]
 QUANT_MODES = ["none", "fp8"]
 
@@ -81,6 +81,23 @@ class YuE2Unload:
         return ()
 
 
+class YuE2MemoryPreset:
+    """Produces practical loader/decoder values for common GPU capacities."""
+    DESCRIPTION = "Maps a GPU-memory tier to a YuE2 budget, AR offload choice, and VAE decode settings."
+    @classmethod
+    def INPUT_TYPES(cls): return {"required":{"vram":(["12 GB","16 GB","24 GB","32 GB","48 GB"],)}}
+    RETURN_TYPES=("INT","BOOLEAN","STRING","INT")
+    RETURN_NAMES=("memory_budget_gib","offload_ar","vae_decode","vae_tile_frames")
+    FUNCTION="choose"; CATEGORY="YuE2/Memory"
+    def choose(self,vram):
+        size=int(vram.split()[0])
+        if size<=12: return size,True,"tiled",256
+        if size<=16: return size,True,"tiled",384
+        if size<=24: return size,False,"tiled",0
+        if size<=32: return size,False,"tiled",0
+        return size,False,"full",0
+
+
 class YuE2Sampler:
     """YuE2 歌曲生成：风格 + 歌词（+可选 ABC 乐谱）-> 48 kHz 完整歌曲。"""
 
@@ -106,8 +123,8 @@ class YuE2Sampler:
                 "cot": (COT_MODES, {"tooltip":
                     "full=melody and harmony plan; melody=melody-only plan (recommended for covers); off=direct generation without a score."}),
                 "seed": ("INT", {"default": 831001, "min": 0, "max": 2**63 - 1}),
-                "cfg_scale": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 20.0, "step": 0.01,
-                    "tooltip": "Text guidance strength. 1.0 is the official default (off mode uses 1.01)."}),
+                "cfg_scale": ("FLOAT", {"default": -1.0, "min": -1.0, "max": 20.0, "step": 0.01,
+                    "tooltip": "Text guidance strength. -1 uses official defaults: 1.0 for full/melody and 1.01 for off."}),
                 "ode_steps": ("INT", {"default": 32, "min": 4, "max": 64, "step": 1,
                     "tooltip": "Acoustic flow-matching steps. The official default is 32."}),
                 "abc_max_tokens": ("INT", {"default": 4096, "min": 64, "max": 8192, "step": 32}),
@@ -128,6 +145,10 @@ class YuE2Sampler:
                     "tooltip": "Optional ABC score from SheetSage2 or manual editing. Requires cot=melody or full."}),
                 "abort_after_plan": ("BOOLEAN", {"default": False,
                     "tooltip": "Generate only the ABC plan and skip audio synthesis."}),
+                "sampling_settings": ("YUE2_SAMPLING", {"tooltip":
+                    "Optional advanced ABC and semantic sampling settings."}),
+                "save_artifacts": ("BOOLEAN", {"default": False,
+                    "tooltip": "Save exact plan tokens, semantic tokens, latents, settings, timings, hashes, ABC, and FLAC."}),
             },
         }
 
@@ -152,9 +173,16 @@ class YuE2Sampler:
                  abc_max_tokens, semantic_max_tokens, abc_temperature,
                  semantic_temperature, save_flac, save_abc,
                  vae_decode="tiled", vae_tile_frames=0,
-                 abc=None, abort_after_plan=False):
+                 abc=None, abort_after_plan=False, sampling_settings=None,
+                 save_artifacts=False):
         if vae_decode is False:  # Migrate workflows saved before this option existed.
             vae_decode = "tiled"
+        if vae_decode == "auto":
+            try:
+                total_gib = torch.cuda.get_device_properties(torch.cuda.current_device()).total_memory / 2**30
+                vae_decode = "full" if total_gib >= 44 else "tiled"
+            except Exception:
+                vae_decode = "tiled"
         style, lyrics = (style or "").strip(), (lyrics or "").strip()
         if not style:
             raise ValueError("style must not be empty")
@@ -164,11 +192,21 @@ class YuE2Sampler:
         if abc_text and cot == "off":
             raise ValueError("An external ABC score requires cot='melody' or cot='full'")
 
-        abc_sampling = {"temperature": abc_temperature, "max_tokens": int(abc_max_tokens)}
-        semantic_sampling = {"temperature": semantic_temperature,
-                             "max_tokens": int(semantic_max_tokens)}
+        cfg_scale = None if float(cfg_scale) < 0 else float(cfg_scale)
+        if sampling_settings:
+            abc_sampling = dict(sampling_settings["abc"])
+            semantic_sampling = dict(sampling_settings["semantic"])
+        else:
+            abc_sampling = {"temperature": abc_temperature,
+                            "max_tokens": int(abc_max_tokens)}
+            semantic_sampling = {"temperature": semantic_temperature,
+                                 "max_tokens": int(semantic_max_tokens)}
 
-        bar = progress_bar(int(abc_max_tokens) + int(semantic_max_tokens))
+        bar = progress_bar(int(abc_sampling.get("max_tokens", abc_max_tokens)) +
+                           int(semantic_sampling.get("max_tokens", semantic_max_tokens)))
+        if torch.cuda.is_available():
+            try: torch.cuda.reset_peak_memory_stats()
+            except Exception: pass
 
         def on_token(_phase, _token):
             if bar is not None:
@@ -230,8 +268,22 @@ class YuE2Sampler:
                 f"abc_tokens={song.timing['abc'].get('output_tokens', 0)} "
                 f"sem_tokens={song.timing['semantic'].get('output_tokens', 0)} | "
                 f"truncated={song.truncated} | e2e={song.timing['e2e_seconds']:.1f}s")
+        stages=[]
+        for name in ("abc","semantic","nar","vae"):
+            timing=song.timing.get(name)
+            if isinstance(timing,dict):
+                value=timing.get("seconds",timing.get("elapsed_seconds"))
+                if value is not None: stages.append(f"{name}={float(value):.1f}s")
+        if stages: info += " | " + " ".join(stages)
+        if torch.cuda.is_available():
+            try: info += f" | peak_vram={torch.cuda.max_memory_allocated()/2**30:.2f}GiB"
+            except Exception: pass
         if saved:
             info += f" | saved: {out_dir}"
+        if save_artifacts:
+            artifact_dir = timestamp_dir("YuE2_Artifacts")
+            song.save_artifacts(artifact_dir)
+            info += f" | artifacts: {artifact_dir}"
         print(f"[YuE2] {info}")
 
         return (audio_dict(torch.from_numpy(song.audio).T, song.sample_rate),
@@ -242,10 +294,12 @@ NODE_CLASS_MAPPINGS = {
     "YuE2Loader": YuE2Loader,
     "YuE2Sampler": YuE2Sampler,
     "YuE2Unload": YuE2Unload,
+    "YuE2MemoryPreset": YuE2MemoryPreset,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "YuE2Loader": "YuE2 Model Loader",
     "YuE2Sampler": "YuE2 Song Generator",
     "YuE2Unload": "YuE2 Unload Model",
+    "YuE2MemoryPreset": "YuE2 Memory Preset",
 }
