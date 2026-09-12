@@ -208,9 +208,16 @@ def _patch_tie_weights_signature() -> None:
     import functools
     import inspect
 
-    original = PreTrainedModel.__init_subclass__
-    original_func = getattr(original, "__func__", original)
-    is_object_default = original_func is getattr(object, "__init_subclass__", None)
+    # Inspect the descriptor on the class itself.  Reading
+    # ``PreTrainedModel.__init_subclass__`` directly can return an inherited,
+    # already-bound builtin (notably with some Transformers/PyTorch pairs).
+    # Calling that object as ``original(cls)`` passes cls twice and raises:
+    #   __init_subclass__() takes no arguments (1 given)
+    original_descriptor = PreTrainedModel.__dict__.get("__init_subclass__")
+    if isinstance(original_descriptor, classmethod):
+        original_func = original_descriptor.__func__
+    else:
+        original_func = original_descriptor
 
     def patched(cls, **kwargs):
         tie = cls.__dict__.get("tie_weights")
@@ -228,9 +235,11 @@ def _patch_tie_weights_signature() -> None:
 
                 tolerant._yue2_tolerant = True
                 cls.tie_weights = tolerant
-        if not is_object_default:
+        if original_func is not None:
             return original_func(cls, **kwargs)
-        return None
+        # PreTrainedModel did not define the hook. Preserve the inherited MRO
+        # behavior and bind the next implementation to the new subclass.
+        return super(PreTrainedModel, cls).__init_subclass__(**kwargs)
 
     PreTrainedModel.__init_subclass__ = classmethod(patched)
     PreTrainedModel._yue2_tie_sig_patched = True
