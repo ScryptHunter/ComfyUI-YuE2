@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import os
 import sys
 import threading
@@ -29,6 +30,19 @@ _INTENTIONALLY_TIED = {
     "decoder.embed_tokens.weight",
     "output_projection.weight",
 }
+
+
+def _canonical_source_sha256(path) -> str:
+    """Hash Python source with Git's Windows CRLF conversion normalized.
+
+    SheetSage2 pins the exact MERT2 source files as a security/integrity
+    boundary. A Windows Git checkout can convert LF to CRLF without changing
+    the Python program, so hash source using its repository-canonical LF form.
+    Other byte changes (including a BOM or edited code) remain detectable.
+    """
+    with open(path, "rb") as stream:
+        data = stream.read()
+    return hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
 
 
 @contextlib.contextmanager
@@ -70,6 +84,7 @@ def _ignore_intentionally_missing_tied_weights(model_cls, base_model_path=None):
         # SheetSage2 class, so load the local weights with that class directly.
         owner_module = sys.modules.get(model_cls.__module__)
         original_auto_model = getattr(owner_module, "AutoModel", None)
+        original_sha256 = getattr(owner_module, "_sha256", None)
         if base_model_path and original_auto_model is not None:
             local_base = os.path.normcase(os.path.abspath(base_model_path))
             mert2_cls = getattr(owner_module, "MERT2Model", None)
@@ -88,9 +103,31 @@ def _ignore_intentionally_missing_tied_weights(model_cls, base_model_path=None):
                         name_or_path, *args, **kwargs)
 
             owner_module.AutoModel = LocalParentAutoModel
+        # Preserve SheetSage2's pinned source integrity check while accepting
+        # semantically identical Windows Git checkouts with CRLF endings.
+        code_hashes = getattr(owner_module, "BASE_CODE_HASHES", {})
+        if base_model_path and callable(original_sha256) and isinstance(code_hashes, dict):
+            code_names = frozenset(code_hashes)
+
+            def normalized_source_hash(path):
+                name = os.path.basename(os.fspath(path))
+                if name in code_names:
+                    # Also tolerate the reporter's temporary workaround where
+                    # BASE_CODE_HASHES itself was changed to the raw CRLF hash.
+                    # Either way, no digest is accepted unless it matches the
+                    # expected value embedded in the SheetSage2 snapshot.
+                    raw_digest = original_sha256(path)
+                    if raw_digest.lower() == str(code_hashes[name]).lower():
+                        return raw_digest
+                    return _canonical_source_sha256(path)
+                return original_sha256(path)
+
+            owner_module._sha256 = normalized_source_hash
         try:
             yield
         finally:
+            if owner_module is not None and original_sha256 is not None:
+                owner_module._sha256 = original_sha256
             if owner_module is not None and original_auto_model is not None:
                 owner_module.AutoModel = original_auto_model
             PreTrainedModel.from_pretrained = original_descriptor
