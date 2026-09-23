@@ -44,7 +44,7 @@ class YuE2SamplingSettings:
     RETURN_TYPES = ("YUE2_SAMPLING", "STRING")
     RETURN_NAMES = ("settings", "info")
     FUNCTION = "build"
-    CATEGORY = "YuE2/Advanced"
+    CATEGORY = "YuE2/Legacy HF Runtime/Advanced"
 
     def build(self, preset, **values):
         if preset == "official":
@@ -84,7 +84,7 @@ class YuE2Plan:
     RETURN_TYPES = ("YUE2_PLAN", "STRING", "STRING")
     RETURN_NAMES = ("plan", "abc", "info")
     FUNCTION = "plan"
-    CATEGORY = "YuE2/Advanced"
+    CATEGORY = "YuE2/Legacy HF Runtime/Advanced"
 
     def plan(self, pipeline, style, lyrics, cot, seed, cfg_scale, abc=None, sampling_settings=None):
         if not style.strip() or not lyrics.strip():
@@ -121,7 +121,7 @@ class YuE2RenderPlan:
     RETURN_TYPES = ("AUDIO", "YUE2_LATENTS", "STRING", "STRING")
     RETURN_NAMES = ("audio", "latents", "abc", "info")
     FUNCTION = "render"
-    CATEGORY = "YuE2/Advanced"
+    CATEGORY = "YuE2/Legacy HF Runtime/Advanced"
 
     def render(self, pipeline, plan, ode_steps, vae_decode, vae_tile_frames,
                save_flac, save_artifacts, sampling_settings=None, abc_override=None):
@@ -167,7 +167,7 @@ class YuE2DecodeLatents:
                              "mode": (["tiled", "full"],)}}
     RETURN_TYPES = ("AUDIO",)
     FUNCTION = "decode"
-    CATEGORY = "YuE2/Advanced"
+    CATEGORY = "YuE2/Legacy HF Runtime/Advanced"
     def decode(self, pipeline, latents, mode):
         audio = pipeline.decode(latents, full=mode == "full")
         return (audio_dict(torch.from_numpy(audio).T, 48000),)
@@ -185,7 +185,7 @@ class YuE2PlanBatch:
     RETURN_TYPES = ("YUE2_PLAN_BATCH", "STRING")
     RETURN_NAMES = ("plans", "summary")
     FUNCTION = "run"
-    CATEGORY = "YuE2/Advanced"
+    CATEGORY = "YuE2/Legacy HF Runtime/Advanced"
     def run(self, pipeline, style, lyrics, cot, seed_start, count, sampling_settings=None):
         plans=[]; blocks=[]
         for i in range(count):
@@ -204,7 +204,7 @@ class YuE2PlanSelector:
     RETURN_TYPES = ("YUE2_PLAN", "STRING", "INT")
     RETURN_NAMES = ("plan", "abc", "seed")
     FUNCTION = "select"
-    CATEGORY = "YuE2/Advanced"
+    CATEGORY = "YuE2/Legacy HF Runtime/Advanced"
     def select(self, plans, index):
         if not plans: raise ValueError("Plan batch is empty")
         if not 0 <= index < len(plans): raise ValueError(f"index must be 0..{len(plans)-1}")
@@ -215,7 +215,9 @@ NODE_CLASS_MAPPINGS = {"YuE2SamplingSettings": YuE2SamplingSettings, "YuE2Plan":
                        "YuE2RenderPlan": YuE2RenderPlan, "YuE2DecodeLatents": YuE2DecodeLatents,
                        "YuE2PlanBatch": YuE2PlanBatch, "YuE2PlanSelector": YuE2PlanSelector}
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "YuE2SamplingSettings": "YuE2 Advanced Sampling Settings",
-    "YuE2Plan": "YuE2 Generate Plan", "YuE2RenderPlan": "YuE2 Render Plan",
-    "YuE2DecodeLatents": "YuE2 Decode Latents", "YuE2PlanBatch": "YuE2 Plan Batch",
-    "YuE2PlanSelector": "YuE2 Plan Selector"}
+    "YuE2SamplingSettings": "YuE2 Advanced Sampling Settings (Legacy HF)",
+    "YuE2Plan": "YuE2 Generate Plan (Legacy HF)",
+    "YuE2RenderPlan": "YuE2 Render Plan (Legacy HF)",
+    "YuE2DecodeLatents": "YuE2 Decode Latents (Legacy HF)",
+    "YuE2PlanBatch": "YuE2 Plan Batch (Legacy HF)",
+    "YuE2PlanSelector": "YuE2 Plan Selector (Legacy HF)"}

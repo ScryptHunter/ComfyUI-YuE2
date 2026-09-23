@@ -1,0 +1,609 @@
+{
+  "id": "8d7a1e97-4e53-4df2-aa38-f716f4641fb9",
+  "revision": 0,
+  "last_node_id": 5,
+  "last_link_id": 3,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "YuE2Loader",
+      "pos": [
+        0,
+        0
+      ],
+      "size": [
+        340,
+        240
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "COMBO",
+          "widget": {
+            "name": "model"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "type": "COMBO",
+          "widget": {
+            "name": "vae"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "device",
+          "name": "device",
+          "type": "COMBO",
+          "widget": {
+            "name": "device"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "memory_budget_gib",
+          "name": "memory_budget_gib",
+          "type": "INT",
+          "widget": {
+            "name": "memory_budget_gib"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "offload_ar",
+          "name": "offload_ar",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "offload_ar"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "offline",
+          "name": "offline",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "offline"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "attention_backend",
+          "name": "attention_backend",
+          "type": "COMBO",
+          "widget": {
+            "name": "attention_backend"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "quantization",
+          "name": "quantization",
+          "type": "COMBO",
+          "widget": {
+            "name": "quantization"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "pipeline",
+          "name": "pipeline",
+          "type": "YUE2_PIPE",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "a547d60115e22b7c3d114210cd019b4918b4cb6d",
+        "Node name for S&R": "YuE2Loader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "YuE2-3B",
+        "YuE2-Vae",
+        "cuda",
+        24,
+        false,
+        true,
+        "auto",
+        "none"
+      ],
+      "widgets_values_named": {
+        "model": "YuE2-3B",
+        "vae": "YuE2-Vae",
+        "device": "cuda",
+        "memory_budget_gib": 24,
+        "offload_ar": false,
+        "offline": true,
+        "attention_backend": "auto",
+        "quantization": "none"
+      }
+    },
+    {
+      "id": 2,
+      "type": "YuE2UniversalAdapterLoader",
+      "pos": [
+        400,
+        0
+      ],
+      "size": [
+        340,
+        240
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "pipeline",
+          "name": "pipeline",
+          "type": "YUE2_PIPE",
+          "link": 1
+        },
+        {
+          "localized_name": "adapter",
+          "name": "adapter",
+          "type": "COMBO",
+          "widget": {
+            "name": "adapter"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "ar_strength",
+          "name": "ar_strength",
+          "type": "FLOAT",
+          "widget": {
+            "name": "ar_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "nar_strength",
+          "name": "nar_strength",
+          "type": "FLOAT",
+          "widget": {
+            "name": "nar_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "enabled",
+          "name": "enabled",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "enabled"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "pipeline",
+          "name": "pipeline",
+          "type": "YUE2_PIPE",
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "a547d60115e22b7c3d114210cd019b4918b4cb6d",
+        "Node name for S&R": "YuE2UniversalAdapterLoader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "none",
+        1,
+        1,
+        true
+      ],
+      "widgets_values_named": {
+        "ar_lora": "none",
+        "ar_strength": 1,
+        "nar_strength": 1,
+        "auto_load_paired_nar": true,
+        "nar_lora_override": "none"
+      }
+    },
+    {
+      "id": 3,
+      "type": "YuE2Sampler",
+      "pos": [
+        800,
+        0
+      ],
+      "size": [
+        360,
+        650
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "pipeline",
+          "name": "pipeline",
+          "type": "YUE2_PIPE",
+          "link": 2
+        },
+        {
+          "localized_name": "abc",
+          "name": "abc",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "localized_name": "sampling_settings",
+          "name": "sampling_settings",
+          "shape": 7,
+          "type": "YUE2_SAMPLING",
+          "link": null
+        },
+        {
+          "localized_name": "style",
+          "name": "style",
+          "type": "STRING",
+          "widget": {
+            "name": "style"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "lyrics",
+          "name": "lyrics",
+          "type": "STRING",
+          "widget": {
+            "name": "lyrics"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cot",
+          "name": "cot",
+          "type": "COMBO",
+          "widget": {
+            "name": "cot"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cfg_scale",
+          "name": "cfg_scale",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg_scale"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "ode_steps",
+          "name": "ode_steps",
+          "type": "INT",
+          "widget": {
+            "name": "ode_steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "abc_max_tokens",
+          "name": "abc_max_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "abc_max_tokens"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "semantic_max_tokens",
+          "name": "semantic_max_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "semantic_max_tokens"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "abc_temperature",
+          "name": "abc_temperature",
+          "type": "FLOAT",
+          "widget": {
+            "name": "abc_temperature"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "semantic_temperature",
+          "name": "semantic_temperature",
+          "type": "FLOAT",
+          "widget": {
+            "name": "semantic_temperature"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "save_flac",
+          "name": "save_flac",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "save_flac"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "save_abc",
+          "name": "save_abc",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "save_abc"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "vae_decode",
+          "name": "vae_decode",
+          "type": "COMBO",
+          "widget": {
+            "name": "vae_decode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "vae_tile_frames",
+          "name": "vae_tile_frames",
+          "type": "INT",
+          "widget": {
+            "name": "vae_tile_frames"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "abort_after_plan",
+          "name": "abort_after_plan",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "abort_after_plan"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "save_artifacts",
+          "name": "save_artifacts",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "save_artifacts"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "links": [
+            3
+          ]
+        },
+        {
+          "localized_name": "abc_score",
+          "name": "abc_score",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "info",
+          "name": "info",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "a547d60115e22b7c3d114210cd019b4918b4cb6d",
+        "Node name for S&R": "YuE2Sampler",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "English witch house, ethereal female vocal, dark atmospheric synths, deep bass, 80 BPM",
+        "[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside",
+        "full",
+        831001,
+        "fixed",
+        -1,
+        32,
+        4096,
+        3000,
+        0.7,
+        1,
+        false,
+        true,
+        "tiled",
+        false,
+        false,
+        false
+      ],
+      "widgets_values_named": {
+        "style": "English witch house, ethereal female vocal, dark atmospheric synths, deep bass, 80 BPM",
+        "lyrics": "[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside",
+        "cot": "full",
+        "seed": 831001,
+        "control_after_generate": "fixed",
+        "cfg_scale": -1,
+        "ode_steps": 32,
+        "abc_max_tokens": 4096,
+        "semantic_max_tokens": 3000,
+        "abc_temperature": 0.7,
+        "semantic_temperature": 1,
+        "save_flac": false,
+        "save_abc": true,
+        "vae_decode": "tiled",
+        "vae_tile_frames": false,
+        "abort_after_plan": false,
+        "save_artifacts": false
+      }
+    },
+    {
+      "id": 4,
+      "type": "SaveAudioAdvanced",
+      "pos": [
+        1200,
+        0
+      ],
+      "size": [
+        340,
+        160
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 3
+        },
+        {
+          "localized_name": "filename_prefix",
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "format",
+          "name": "format",
+          "type": "COMFY_DYNAMICCOMBO_V3",
+          "widget": {
+            "name": "format"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "quality",
+          "name": "format.quality",
+          "type": "COMBO",
+          "widget": {
+            "name": "format.quality"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "audioUI",
+          "name": "audioUI",
+          "type": "AUDIO_UI",
+          "widget": {
+            "name": "audioUI"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.37.0",
+        "Node name for S&R": "SaveAudioAdvanced",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "audio/YuE2_LoRA",
+        "mp3",
+        "V0"
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "audio/YuE2_LoRA",
+        "format": "mp3",
+        "format.quality": "V0"
+      }
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "YUE2_PIPE"
+    ],
+    [
+      2,
+      2,
+      0,
+      3,
+      0,
+      "YUE2_PIPE"
+    ],
+    [
+      3,
+      3,
+      0,
+      4,
+      0,
+      "AUDIO"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.75,
+      "offset": [
+        254.39998372395812,
+        426.1332194010419
+      ]
+    },
+    "ue_links": [],
+    "anomalous_hashes": {}
+  },
+  "version": 0.4
+}

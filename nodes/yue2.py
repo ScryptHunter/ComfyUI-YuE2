@@ -20,8 +20,9 @@ class YuE2Loader:
     """加载 YuE2 生成模型与解码器（VAE）。"""
 
     DESCRIPTION = (
-        "Loads the YuE2 generator and audio VAE. The official inference wheel "
-        "is isolated so it cannot replace ComfyUI's core dependencies."
+        "Legacy Hugging Face loader retained for old workflows. New workflows "
+        "should use YuE2 Native Models Loader (ComfyUI) with the Comfy-Org "
+        "checkpoint to support INT8 without a duplicate model installation."
     )
 
     @classmethod
@@ -50,7 +51,7 @@ class YuE2Loader:
     RETURN_TYPES = ("YUE2_PIPE",)
     RETURN_NAMES = ("pipeline",)
     FUNCTION = "load"
-    CATEGORY = "YuE2"
+    CATEGORY = "YuE2/Legacy HF Runtime"
 
     def load(self, model, vae, device, memory_budget_gib, offload_ar, offline,
              attention_backend="auto", quantization="none"):
@@ -74,7 +75,7 @@ class YuE2Unload:
     RETURN_TYPES = ()
     OUTPUT_NODE = True
     FUNCTION = "unload"
-    CATEGORY = "YuE2"
+    CATEGORY = "YuE2/Legacy HF Runtime"
 
     def unload(self, pipeline):
         yue2_model.close()
@@ -83,12 +84,12 @@ class YuE2Unload:
 
 class YuE2MemoryPreset:
     """Produces practical loader/decoder values for common GPU capacities."""
-    DESCRIPTION = "Maps a GPU-memory tier to a YuE2 budget, AR offload choice, and VAE decode settings."
+    DESCRIPTION = "Shared native/legacy GPU preset. Native loaders use memory_budget_gib and offload_ar; legacy nodes also use VAE decode settings."
     @classmethod
     def INPUT_TYPES(cls): return {"required":{"vram":(["12 GB","16 GB","24 GB","32 GB","48 GB"],)}}
     RETURN_TYPES=("INT","BOOLEAN","STRING","INT")
     RETURN_NAMES=("memory_budget_gib","offload_ar","vae_decode","vae_tile_frames")
-    FUNCTION="choose"; CATEGORY="YuE2/Memory"
+    FUNCTION="choose"; CATEGORY="YuE2/Shared Utilities"
     def choose(self,vram):
         size=int(vram.split()[0])
         if size<=12: return size,True,"tiled",256
@@ -155,7 +156,7 @@ class YuE2Sampler:
     RETURN_TYPES = ("AUDIO", "STRING", "STRING",)
     RETURN_NAMES = ("audio", "abc_score", "info",)
     FUNCTION = "generate"
-    CATEGORY = "YuE2"
+    CATEGORY = "YuE2/Legacy HF Runtime"
 
     @classmethod
     def VALIDATE_INPUTS(cls, vae_decode):
@@ -298,8 +299,8 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "YuE2Loader": "YuE2 Model Loader",
-    "YuE2Sampler": "YuE2 Song Generator",
-    "YuE2Unload": "YuE2 Unload Model",
-    "YuE2MemoryPreset": "YuE2 Memory Preset",
+    "YuE2Loader": "YuE2 Model Loader (Legacy HF)",
+    "YuE2Sampler": "YuE2 Song Generator (Legacy HF)",
+    "YuE2Unload": "YuE2 Unload Model (Legacy HF)",
+    "YuE2MemoryPreset": "YuE2 GPU Memory Preset (Native + Legacy)",
 }

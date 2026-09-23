@@ -146,6 +146,8 @@ class ABCAnalyzer:
     RETURN_TYPES=("STRING","FLOAT","STRING","FLOAT"); RETURN_NAMES=("report","bpm","key","duration_seconds")
     FUNCTION="analyze"; CATEGORY="YuE2/ABC"
     def analyze(self,abc):
+        if not (abc or "").strip():
+            return "ABC input is empty (score planning is disabled).",0.0,"",0.0
         report,bpm,key,duration=analyze_abc(abc); return report,bpm,key,duration
 
 
@@ -325,7 +327,7 @@ class YuE2StyleBuilder:
         "instruments":("STRING",{"default":"distorted bass, abrasive synths"}),
         "drums":("STRING",{"default":"hard syncopated breakbeats"}),
         "mood":("STRING",{"default":"raw, dark, hostile"}), "tempo":("STRING",{"default":"fast"}),
-        "extra":("STRING",{"default":""})}}
+        "extra":("STRING",{"default":"","multiline":True})}}
     RETURN_TYPES=("STRING",); RETURN_NAMES=("style",); FUNCTION="build"; CATEGORY="YuE2/Prompting"
     def build(self,**kw):
         parts=[]

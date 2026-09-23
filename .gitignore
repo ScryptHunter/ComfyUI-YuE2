@@ -1,4 +1,5 @@
 __pycache__/
+*.py[cod]
 *.pyc
 *.pyo
 *.egg-info/
@@ -20,3 +21,4 @@ _sep_test/
 output/
 .yue2_runtime/
 *.7z
+*.zip

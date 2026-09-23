@@ -23,6 +23,7 @@ _SECTION_ALIASES = {
 
 # 纯音乐段落（歌词结构化时不分配歌词行）
 _NON_SINGING = {"intro", "silence", "interlude", "instrumental", "solo"}
+_SECTION_TAG_LINE = re.compile(r"^\s*\[[^\]\r\n]+\]\s*$", re.IGNORECASE)
 
 
 def parse_structure_spans(text: str, duration_hint: float):
@@ -72,12 +73,14 @@ class SheetSage2Loader:
 
     DESCRIPTION = (
         "Loads the SheetSage2 transcription adapter and its MERT-v2 FullSong "
-        "encoder. Local MERT2 folders are preferred over the Hugging Face cache."
+        "encoder for legacy workflows. Downloads are disabled by default. New "
+        "workflows should use the native sheetsage2_bf16.safetensors encoder, "
+        "which already contains MERT2."
     )
 
     @classmethod
     def INPUT_TYPES(cls):
-        models = list_snapshots("sheetsage2") or ["SheetSage2"]
+        models = list_snapshots("sheetsage2") or ["m-a-p/SheetSage2"]
         mert2 = list_snapshots("mert2")
         mert2_options = mert2 + ["auto"] if mert2 else ["auto"]
         return {
@@ -89,18 +92,22 @@ class SheetSage2Loader:
             "optional": {
                 "mert2_model": (mert2_options, {"tooltip":
                     "MERT-v2-FullSong parent model. Place it under models/MERT2/. "
-                    "Auto checks local folders first, then the Hugging Face cache/download."}),
+                    "Auto checks local folders and the existing Hugging Face cache without downloading."}),
+                "download_policy": (["local_only", "allow_huggingface_download"], {"tooltip":
+                    "local_only never starts a MERT2 download. Enable downloading explicitly only for the legacy backend."}),
             },
         }
 
     RETURN_TYPES = ("SS2_MODEL",)
     RETURN_NAMES = ("model",)
     FUNCTION = "load"
-    CATEGORY = "YuE2/SheetSage2"
+    CATEGORY = "YuE2/Legacy HF Runtime/SheetSage2"
 
-    def load(self, model, device, dtype, mert2_model="auto"):
+    def load(self, model, device, dtype, mert2_model="auto",
+             download_policy="local_only"):
         return (ss2_model.load(model, device=device, dtype=dtype,
-                               mert2_name=mert2_model),)
+                               mert2_name=mert2_model,
+                               allow_download=download_policy == "allow_huggingface_download"),)
 
 
 class SheetSage2Transcribe:
@@ -143,7 +150,7 @@ class SheetSage2Transcribe:
     RETURN_NAMES = ("abc", "structure", "info", "midi",)
     OUTPUT_NODE = True
     FUNCTION = "transcribe"
-    CATEGORY = "YuE2/SheetSage2"
+    CATEGORY = "YuE2/Legacy HF Runtime/SheetSage2"
 
     def transcribe(self, model, audio, melody_only, preset, max_seconds, save_outputs,
                    abc_error_mode="strict", overlap_seconds=-1.0,
@@ -193,7 +200,7 @@ class SheetSage2Unload:
     RETURN_NAMES = ("status",)
     FUNCTION = "unload"
     OUTPUT_NODE = True
-    CATEGORY = "YuE2/Memory"
+    CATEGORY = "YuE2/Legacy HF Runtime/SheetSage2"
 
     def unload(self, model):
         del model
@@ -238,7 +245,7 @@ class LyricsFormatter:
     等标签 -> 无词区间输出空标签（间奏） -> 清理标点与相邻重复行。
     """
 
-    _PUNCT = str.maketrans("", "", "。！？，、；：,.!?;:\"'`()[]{}<>~…·—“”‘’")
+    _PUNCT = str.maketrans("", "", "。！？，、；：,.!?;:\"'`()[]{}<>~…·\u2014“”‘’")
 
     DESCRIPTION = (
         "Converts timed LRC, SRT, or aligned lyric lines into YuE2 sectioned "
@@ -348,7 +355,7 @@ class LyricsFormatter:
         """为时间无效的行按行序插值补位，使其仍能归入合理的段落。
 
         对齐器在歌声上常出现成片失败（尤其副歌与纯音乐段）。做法是找出连续
-        的无效区段，在左右两个可靠锚点之间均匀铺开——而不是按固定步长从锚点
+        的无效区段，在左右两个可靠锚点之间均匀铺开-&#x20;-&#x20;而不是按固定步长从锚点
         回推，后者会把整段未对齐歌词挤到锚点附近。
         """
         n = len(rows)
@@ -550,10 +557,10 @@ class LyricsStructurer:
 
     def format(self, lyrics_text, structure, verse_lines, section_plan):
         # 已带 [tag] 的文本原样保留（用户手工标好就尊重）
-        if re.search(r"^\s*\[[a-z]+\]\s*$", lyrics_text or "", re.MULTILINE):
+        if any(_SECTION_TAG_LINE.fullmatch(line) for line in (lyrics_text or "").splitlines()):
             cleaned = "\n".join(
                 ln for ln in (l.strip() for l in lyrics_text.splitlines())
-                if ln and not re.match(r"^\[[a-z]+\]$", ln))
+                if ln and not _SECTION_TAG_LINE.fullmatch(ln))
             report = f"Existing section tags preserved ({len(cleaned.splitlines())} lyric lines)"
             print(f"[Lyrics Structurer] {report}")
             return (lyrics_text.rstrip() + "\n", report)
@@ -627,9 +634,9 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "SheetSage2Loader": "SheetSage2 Model Loader",
-    "SheetSage2Transcribe": "SheetSage2 Audio Transcriber",
-    "SheetSage2Unload": "SheetSage2 Unload Model",
+    "SheetSage2Loader": "SheetSage2 Model Loader (Legacy HF)",
+    "SheetSage2Transcribe": "SheetSage2 Audio Transcriber (Legacy HF)",
+    "SheetSage2Unload": "SheetSage2 Unload Model (Legacy HF)",
     "YuE2SaveMidiFile": "YuE2 MIDI File Saver",
     "YuE2LyricsFormatter": "YuE2 Lyrics Formatter (Timed to Sections)",
     "YuE2LyricsStructurer": "YuE2 Lyrics Structurer (Text to Sections)",

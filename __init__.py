@@ -32,6 +32,8 @@ def _try_register(module_name: str, mapping: dict) -> None:
 
 _failed: dict = {}
 
+_try_register("nodes.comfy_native", _failed)
+_try_register("nodes.yue2_lora", _failed)
 _try_register("nodes.yue2", _failed)
 _try_register("nodes.yue2_advanced", _failed)
 _try_register("nodes.sheetsage2", _failed)
@@ -44,6 +46,6 @@ else:
     for name, err in _failed.items():
         print(f"[ComfyUI-YuE2]   Failed to load {name}: {err}")
 
-WEB_DIRECTORY = None  # No frontend extension required.
+WEB_DIRECTORY = "web"
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]

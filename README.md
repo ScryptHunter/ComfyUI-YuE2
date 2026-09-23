@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/readme/hero.svg" width="100%" alt="ComfyUI-YuE2 — safe local song generation and audio-to-score workflows for ComfyUI">
+  <img src="./assets/readme/hero.svg" width="100%" alt="ComfyUI-YuE2 -&#x20; safe local song generation and audio-to-score workflows for ComfyUI">
 </p>
 
 <p align="center">
@@ -13,208 +13,199 @@
   <a href="#what-this-fork-fixes">Fork fixes</a>
 </p>
 
+## Update — 2026-09-23
+
+- Added Native ComfyUI pipeline support alongside Legacy/HF.
+- Added YuE2 Universal Adapter Loader (LoRA / LoKr) for Native and Legacy workflows.
+- Added automatic support for FL-YuE2, Starnodes, ComfyUI-native, PEFT/HF, HOT-Step, LoKr and Mothersuperior YuE2 adapters.
+- Added adapter stacking with independent AR/NAR strengths.
+- Added in-node help and clearer FL-specific loader names.
+- Updated bundled workflows to use the Universal Adapter Loader by default.
+
+Updated: 2026-09-23
+
 ## What this is
 
-**ComfyUI-YuE2** connects two complementary music models inside ComfyUI:
+**ComfyUI-YuE2** is now a native extension layer for ComfyUI's built-in YuE2 support:
 
-- **YuE2** turns a style prompt and sectioned lyrics into a complete stereo song. It can expose or accept an editable ABC melody-and-chord plan.
-- **SheetSage2** turns reference audio into ABC, MIDI, and timed song sections for covers, rearrangements, and lyric alignment.
+- **Comfy-Org YuE2 checkpoints** load from `models/checkpoints/` as standard `MODEL`, `CLIP`, and `VAE` objects. Both the BF16 and INT8 ConvRot checkpoints are supported.
+- **Comfy-Org SheetSage2** loads from `models/audio_encoders/` as a standard `AUDIO_ENCODER`.
+- **`YUE2_NATIVE_PIPE`** is a lightweight bundle of those same native objects. The loader also exposes every standard output for stock ComfyUI nodes.
+- The fork's ABC editing, vocal-range, melody-cleanup, prompt, lyrics, MIDI, and analysis nodes connect directly to ComfyUI's official YuE2 nodes.
 
-This fork focuses on running both models safely inside a modern shared ComfyUI environment. It does **not** install the official YuE2 wheel through pip, does **not** replace ComfyUI's Torch stack, and can load MERT2 entirely from a local model folder.
+The native pipe is only a Python container; it does not install `yue2_infer`, create a separate model runtime, or require a second copy of the weights. The earlier isolated Hugging Face runtime remains available under **Legacy HF Runtime** only so existing workflows do not break.
 
 > **Fork notice:** This repository is a compatibility-focused fork of
 > [`piscesbody/ComfyUI-YuE2`](https://github.com/piscesbody/ComfyUI-YuE2),
-> updated for dependency-safe installation, current ComfyUI environments,
-> modern Transformers releases, local MERT2 loading, and an English interface.
+> updated for native ComfyUI YuE2, INT8 checkpoints, editable ABC workflows,
+> dependency-safe installation, and an English interface.
 
 ## Workflows
 
-| Goal | Node path | Reference audio |
+| Goal | Native node path | Reference audio |
 | --- | --- | --- |
-| Generate a new song | `YuE2 Model Loader` → `YuE2 Song Generator` | Not required |
-| Generate and edit a score first | `YuE2 Generate Plan` → ABC tools → `YuE2 Render Plan` | Not required |
-| Create a cover or rearrangement | `Load Audio` → `SheetSage2 Audio Transcriber` → `YuE2 Song Generator` | Required |
-| Extract only a score | `Load Audio` → `SheetSage2 Audio Transcriber` | Required |
+| Generate a new song | `YuE2 Native Pipeline Loader` → `YuE2 Native Generate ABC` → ABC tools → `YuE2 Native Generate Music` → standard sampler/VAE nodes | Not required |
+| Generate directly without a score | Native pipe → `YuE2 Native Generate Music` with empty ABC → standard sampler/VAE nodes | Not required |
+| Create a cover or remix | Native pipe → `YuE2 Native Audio to ABC` → ABC tools → `YuE2 Native Generate Music` → standard sampler/VAE nodes | Required |
+| Analyze or edit a score | Any ABC string → analyzer/modifier/cleanup/range/file nodes | Not required |
 
-For covers, SheetSage2 extracts a symbolic score. YuE2 then creates a new recording from that score, the target style, and the lyrics. This is **not voice cloning** and does not preserve the original waveform.
+For covers, SheetSage2 extracts a symbolic score. YuE2 creates a new recording from that score, the target style, and the lyrics. This is not voice cloning and does not preserve the source waveform.
 
 ## What this fork fixes
 
-- **Dependency-safe YuE2 runtime** — extracts the pure-Python `yue2_infer` wheel into a node-private runtime instead of allowing pip to downgrade Torch, Transformers, NumPy, or Hugging Face Hub.
-- **Modern Transformers compatibility** — adapts legacy Transformers 4.x model APIs to current Transformers 5.x behavior.
-- **SheetSage2 tied weights** — recognizes the intentionally shared decoder and output embeddings instead of rejecting the adapter checkpoint as incomplete.
-- **Correct MERT2 rotary embeddings** — repairs corrupted `inv_freq` buffers that can otherwise produce rhythm and chords without reliable melody pitch.
-- **Fully local MERT2 loading** — loads the parent encoder from `models/MERT2/` without copying model code into the global Hugging Face modules cache.
-- **Windows attention fallback** — detects unavailable built-in Flash Attention and switches GraphAR to the cuDNN SDPA backend.
-- **ComfyUI runtime isolation** — restores process-wide CUDA memory limits and precision flags after YuE2 uses them.
-- **Legacy workflow migration** — accepts old workflows that stored `vae_decode=false` and maps the value to `tiled`.
+- **Native ComfyUI + INT8 support** -&#x20; uses Comfy-Org single-file checkpoints
+  and standard `MODEL`, `CLIP`, `VAE`, and `AUDIO_ENCODER` types.
+- **No duplicate model installation** -&#x20; native workflows reuse the same files
+  as ComfyUI's official YuE2 workflows.
+- **Editable native score path** -&#x20; the ABC tools sit directly between the
+  official planning, SheetSage2, and music-conditioning nodes.
+
+The following fixes remain available for old workflows under **Legacy HF Runtime**:
+
+- **Dependency-safe YuE2 runtime** -&#x20; extracts the pure-Python `yue2_infer` wheel into a node-private runtime instead of allowing pip to downgrade Torch, Transformers, NumPy, or Hugging Face Hub.
+- **Modern Transformers compatibility** -&#x20; adapts legacy Transformers 4.x model APIs to current Transformers 5.x behavior.
+- **SheetSage2 tied weights** -&#x20; recognizes the intentionally shared decoder and output embeddings instead of rejecting the adapter checkpoint as incomplete.
+- **Correct MERT2 rotary embeddings** -&#x20; repairs corrupted `inv_freq` buffers that can otherwise produce rhythm and chords without reliable melody pitch.
+- **Fully local MERT2 loading** -&#x20; loads the parent encoder from `models/MERT2/` without copying model code into the global Hugging Face modules cache.
+- **Windows attention fallback** -&#x20; detects unavailable built-in Flash Attention and switches GraphAR to the cuDNN SDPA backend.
+- **ComfyUI runtime isolation** -&#x20; restores process-wide CUDA memory limits and precision flags after YuE2 uses them.
+- **Legacy workflow migration** -&#x20; accepts old workflows that stored `vae_decode=false` and maps the value to `tiled`.
 
 ## Quick start
 
-### 1. Install the node dependencies
+### 1. Update ComfyUI
 
-Run pip with the Python executable used by ComfyUI:
+Native YuE2 requires a current ComfyUI containing `YuE2 Generate ABC`, `YuE2 Generate Music`, `Empty YuE2 Latent Audio`, and `SheetSage2 Audio to ABC`.
+
+### 2. Install this node
+
+Clone or copy the repository into `ComfyUI/custom_nodes/ComfyUI-YuE2`, then restart ComfyUI. Native mode has no additional pip dependencies:
 
 ```powershell
 python_embeded\python.exe -m pip install -r ComfyUI\custom_nodes\ComfyUI-YuE2\requirements.txt
 ```
 
-The requirements intentionally omit `torch`, `torchaudio`, `transformers`, and `numpy`. They also omit the obsolete `descript-audiotools` dependency, which can force a destructive Protobuf downgrade.
+The command is intentionally a no-op dependency file. Do not pip-install the upstream `yue2_infer` wheel.
 
-### 2. Do not pip-install the YuE2 wheel
+### 3. Download the native models
 
-Place the wheel shipped with the matching YuE2 model directly inside the model folder:
-
-```text
-ComfyUI/models/YuE2/YuE2-3B/yue2_infer-0.1.5-py3-none-any.whl
-```
-
-The node extracts it into `.yue2_runtime/` and imports it without resolving the wheel's pinned dependencies.
-
-### 3. Download the models
-
-See the complete folder layout below. Restart ComfyUI after installing dependencies or updating the node.
+Use the Comfy-Org single-file checkpoints shown below. You do not need the separate `YuE2-3B`, `YuE2-Vae`, `SheetSage2`, or `MERT-v2-FullSong` directories for native workflows.
 
 ## Model layout
 
 ```text
 ComfyUI/models/
-├── YuE2/
-│   ├── YuE2-3B/
-│   │   ├── config.json
-│   │   ├── ...weights...
-│   │   └── yue2_infer-0.1.5-py3-none-any.whl
-│   ├── YuE2-Vae/
-│   └── YuE2-Vae-legacy/                 # optional benchmark decoder
-├── SheetSage2/
-│   ├── config.json
-│   ├── model.safetensors
-│   └── ...repository Python files...
-└── MERT2/
-    └── MERT-v2-FullSong/
-        ├── config.json
-        ├── model.safetensors
-        └── ...repository Python files...
+checkpoints/
+|-- yue2_3b_int8_convrot.safetensors   # recommended
+`-- yue2_3b_bf16.safetensors           # optional
+audio_encoders/
+`-- sheetsage2_bf16.safetensors         # reference/cover workflows
 ```
 
-| Folder | Source |
+| File | Source |
 | --- | --- |
-| `YuE2/YuE2-3B/` | [`m-a-p/YuE2-3B`](https://huggingface.co/m-a-p/YuE2-3B) |
-| `YuE2/YuE2-Vae/` | [`m-a-p/YuE2-Vae`](https://huggingface.co/m-a-p/YuE2-Vae) |
-| `YuE2/YuE2-Vae-legacy/` | [`m-a-p/YuE2-Vae-legacy`](https://huggingface.co/m-a-p/YuE2-Vae-legacy) |
-| `SheetSage2/` | [`m-a-p/SheetSage2`](https://huggingface.co/m-a-p/SheetSage2) |
-| `MERT2/MERT-v2-FullSong/` | [`m-a-p/MERT-v2-FullSong`](https://huggingface.co/m-a-p/MERT-v2-FullSong) |
+| `checkpoints/yue2_3b_int8_convrot.safetensors` | [`Comfy-Org/YuE2`](https://huggingface.co/Comfy-Org/YuE2/tree/main/checkpoints) |
+| `checkpoints/yue2_3b_bf16.safetensors` | [`Comfy-Org/YuE2`](https://huggingface.co/Comfy-Org/YuE2/tree/main/checkpoints) |
+| `audio_encoders/sheetsage2_bf16.safetensors` | [`Comfy-Org/YuE2`](https://huggingface.co/Comfy-Org/YuE2/tree/main/audio_encoders) |
 
-Download the MERT2 revision expected by the SheetSage2 adapter:
+The INT8 checkpoint contains the native YuE2 model, text/planning model, tokenizer, and VAE in one ComfyUI checkpoint. The native SheetSage2 file already contains its required audio encoder, so it does not download the separate 3.7 GB MERT2 parent.
 
-```powershell
-hf download m-a-p/MERT-v2-FullSong `
-  --revision d8ba1c745e733b3908ce6ad16ebeb17ac7600a42 `
-  --local-dir ComfyUI/models/MERT2/MERT-v2-FullSong
-```
+<details>
+<summary>Legacy Hugging Face model layout</summary>
 
-The loader also accepts `MERT-v2-FullSong/` nested directly inside `models/SheetSage2/`. If neither local location exists, the `auto` option falls back to the standard Hugging Face cache/download behavior.
+Old workflows using nodes labelled `(Legacy HF)` may still use `models/YuE2/`, `models/SheetSage2/`, and `models/MERT2/`. Those files are not needed by the native workflows. Optional legacy dependencies are listed in `requirements-legacy.txt`.
+
+The legacy SheetSage2 loader uses `local_only` by default: it checks
+`models/MERT2/` and an existing Hugging Face cache, but never starts a MERT2
+download automatically. Network download is available only through the explicit
+`allow_huggingface_download` option. Native workflows need only the combined
+`models/audio_encoders/sheetsage2_bf16.safetensors` file.
+
+</details>
 
 ### Custom model paths
 
 ```yaml
-yue2_music:
-  base_path: F:/models/music
-  yue2: YuE2/
-  sheetsage2: SheetSage2/
-  mert2: MERT2/
+yue2_native:
+  base_path: F:/models
+  checkpoints: checkpoints/
+  audio_encoders: audio_encoders/
 ```
 
 ## First generation
 
-1. Add **YuE2 Model Loader** and select the generator and VAE.
-2. Add **YuE2 Song Generator**.
-3. Enter a style prompt such as `English indie pop, warm female vocal, clean guitar, restrained drums`.
-4. Provide sectioned lyrics:
+1. Load `yue2_3b_int8_convrot.safetensors` with **YuE2 Native Pipeline Loader (ComfyUI)**.
+2. Connect its `pipe` output to the native generation nodes, or use its standard outputs with stock ComfyUI nodes.
+3. Add **YuE2 Native Generate ABC** when you want an editable score.
+4. Insert any of this fork's ABC nodes between **YuE2 Native Generate ABC** and **YuE2 Native Generate Music**.
+5. Use `full` for melody plus chords, `melody` for a melody-only cover plan, or leave ABC empty for direct generation.
 
-```text
-[verse]
-City lights are fading softly
-Morning waits beyond the blue
+Importable native workflows:
 
-[chorus]
-Carry every spark of wonder
-Let the open road come through
-```
+- [`YuE2_Native_Text_to_Song.json`](./example_workflows/YuE2_Native_Text_to_Song.json) -&#x20; native pipe generation with style/lyrics helpers, editable ABC, analysis, and the standard sampler/decode path.
+- [`YuE2_Native_Reference_Remix.json`](./example_workflows/YuE2_Native_Reference_Remix.json) -&#x20; native SheetSage2 remix with prompt helpers, tempo/range/cleanup tools, and ABC/lyrics analysis.
 
-5. Use `cot=full` for an editable melody-and-harmony plan, `cot=melody` for a melody-only cover plan, or `cot=off` for direct generation.
-
-Importable workflows:
-
-- [`YuE2_Text_to_Song.json`](./example_workflows/YuE2_Text_to_Song.json) — generate a song from style and lyrics without reference audio.
-- [`YuE2_Reference_Remix.json`](./example_workflows/YuE2_Reference_Remix.json) — transcribe reference audio, edit its ABC plan, and render a remix.
-- [`YuE2_All_Nodes_Showcase.json`](./example_workflows/YuE2_All_Nodes_Showcase.json) — visual overview of the complete node set.
+The previous isolated-runtime workflows remain in the folder for backward compatibility and are now considered legacy.
 
 ## Cover workflow
 
 ```text
 Load Audio
-    └─→ SheetSage2 Model Loader → SheetSage2 Audio Transcriber
-                                      ├─→ ABC score ──────────────┐
-                                      └─→ section structure ──┐   │
-                                                              ▼   ▼
-Plain/timed lyrics → Lyrics Formatter or Structurer → YuE2 Song Generator
-                                                        cot=melody
+    ↓
+YuE2 Native Pipeline Loader (audio_encoder = sheetsage2_bf16)
+    ├── native pipe → YuE2 Native Audio to ABC / Generate Music
+    └── MODEL / CLIP / VAE / AUDIO_ENCODER → stock ComfyUI nodes
+
+SheetSage2 ABC
+    → ABC Modifier
+    → Vocal Range Retarget
+    → Melody Cleanup
+    → YuE2 Native Generate Music (mode = melody)
 ```
 
-Use `melody_only=true` in SheetSage2 and `cot=melody` in YuE2 when the goal is to preserve the tune while allowing a new arrangement.
-
-For a controllable remix workflow, connect the plan's ABC output through **ABC
-Analyzer**, **Melody Cleanup**, **Vocal Range Retarget**, and/or **ABC Modifier**,
-then connect the edited text to `abc_override` on **YuE2 Render Plan**. The
-original plan still carries the exact style, lyrics, seed, COT mode, and CFG
-settings, so the render node can rebuild the symbolic plan without regenerating
-it randomly.
+The custom ABC nodes only transform text, so they work with INT8 and BF16 checkpoints identically. They never depend on the model's weight format.
 
 ## Nodes
 
 | Node | Description |
 | --- | --- |
-| **YuE2 Model Loader** | Loads the generator and VAE through the isolated runtime. |
-| **YuE2 Song Generator** | Creates a 48 kHz stereo song and optionally saves FLAC and ABC outputs. |
-| **YuE2 Unload Model** | Releases the cached YuE2 pipeline and VRAM. |
-| **YuE2 Memory Preset** | Produces loader and VAE settings for 12/16/24/32/48 GB GPU tiers. |
-| **YuE2 Advanced Sampling Settings** | Exposes separate official `temperature`, `top_p`, `top_k`, repetition penalty/window, and token limits for ABC and semantic generation. |
-| **YuE2 Generate Plan** | Runs only symbolic planning and returns the exact reusable plan object plus ABC. |
-| **YuE2 Render Plan** | Renders a plan—or an edited ABC override—through semantic, NAR, and VAE stages. |
-| **YuE2 Decode Latents** | Decodes cached acoustic latents without repeating earlier stages. |
-| **YuE2 Plan Batch** / **Plan Selector** | Explores several inexpensive ABC plans from consecutive seeds and selects one for rendering. |
-| **SheetSage2 Model Loader** | Loads the transcription adapter and local or cached MERT2 parent. |
-| **SheetSage2 Audio Transcriber** | Produces ABC, MIDI, and timed structure; supports strict, snap, skip, full-score, and MIDI-only ABC failure policies. |
-| **SheetSage2 Unload Model** | Explicitly releases SheetSage2/MERT2 VRAM. The transcriber can also auto-unload. |
-| **YuE2 ABC Analyzer** | Reports BPM, key, meter, approximate duration, voice note counts, ranges, medians, and vocal-range warnings. |
-| **YuE2 ABC Modifier** | Overrides or scales BPM, transposes the score or individual voices, shifts octaves, removes chords, and trims named sections. |
-| **YuE2 Vocal Range Retarget** | Automatically applies an octave-safe Vocal shift toward common male/female ranges, or accepts a manual shift. |
-| **YuE2 Melody Cleanup** | Replaces suspiciously short or extreme Vocal notes with equal-duration rests while preserving the timeline. |
+| **YuE2 Native Pipeline Loader (ComfyUI)** | Loads official model files and returns a lightweight native pipe plus standard `MODEL`, `CLIP`, `VAE`, and optional `AUDIO_ENCODER` outputs. |
+| **YuE2 Native Pipe Components** | Unpacks a native pipe for connection to stock ComfyUI nodes. |
+| **YuE2 Native Generate ABC** | Generates an editable ABC plan using the pipe's native CLIP and the stock sampling controls. |
+| **YuE2 Native Generate Music** | Returns native conditioning, duration, MODEL, and VAE for the stock sampler/decode path. |
+| **YuE2 Native Audio to ABC** | Uses the pipe's native SheetSage2 encoder to transcribe reference audio. |
+| **YuE2 Native Models Loader (ComfyUI)** | Backward-compatible standard-output loader for earlier native workflows. |
+| **YuE2 ABC Analyzer** | Reports BPM, key, meter, approximate duration, note counts, ranges, medians, and vocal warnings. |
+| **YuE2 ABC Modifier** | Overrides or scales BPM, transposes the score or selected voices, shifts octaves, removes chords, and trims sections. |
+| **YuE2 Vocal Range Retarget** | Applies an octave-safe Vocal shift toward common male/female ranges, or a manual shift. |
+| **YuE2 Melody Cleanup** | Replaces suspiciously short or extreme Vocal notes with equal-duration rests while preserving timing. |
 | **YuE2 ABC File Loader / Saver** | Loads editable `.abc` files from input or saves them under output. |
-| **YuE2 MIDI File Saver** | Saves the in-memory MIDI output from SheetSage2. |
-| **YuE2 Style Prompt Builder** | Builds a compact prompt from language, genre, era, vocal, instrument, drum, mood, and tempo descriptors. |
-| **YuE2 Lyrics / Melody Fit Analyzer** | Compares estimated English syllables with Vocal note counts per section. |
-| **YuE2 Lyrics Formatter (Timed to Sections)** | Converts LRC, SRT, or aligned text into sectioned lyrics. |
+| **YuE2 MIDI File Saver** | Saves legacy SheetSage2 MIDI output. |
+| **YuE2 Style Prompt Builder** | Builds a compact style prompt from language, genre, era, vocal, instruments, drums, mood, and tempo. |
+| **YuE2 Lyrics / Melody Fit Analyzer** | Compares estimated syllables with Vocal note counts per section. |
+| **YuE2 Lyrics Formatter (Timed to Sections)** | Converts LRC, SRT, or aligned timed text into sectioned lyrics. |
 | **YuE2 Lyrics Structurer (Text to Sections)** | Adds and distributes section tags across plain lyrics. |
 | **YuE2 Lyrics File Loader (LRC/SRT)** | Reads lyric files from the ComfyUI input directory. |
 
+Nodes labelled **Legacy HF** are retained for saved-workflow compatibility. They use the old isolated pipeline and are not required for the native INT8/BF16 workflows.
+
 ## Generation controls
+
+Native generation uses ComfyUI's official controls:
 
 | Control | Meaning |
 | --- | --- |
-| `cot` | `full`: melody + harmony plan; `melody`: melody only; `off`: no score planning. |
-| `attention_backend` | `auto`, `external-flash`, `cudnn`, or `sdpa`. Windows normally uses the automatic cuDNN fallback. |
-| `vae_decode` | `tiled` for lower memory use or `full` for faster high-VRAM decoding with automatic OOM fallback. |
-| `vae_tile_frames` | Tile size for VAE decoding. `0` chooses automatically; `256` is suitable for low-VRAM systems. |
-| `quantization` | Experimental FP8 AR quantization. It saves memory but can be significantly slower. |
-| `abort_after_plan` | Stops after generating the ABC score without synthesizing audio. |
-| `cfg_scale=-1` | Uses official defaults: 1.0 for full/melody planning and 1.01 for direct (`off`) generation. |
-| `sampling_settings` | Replaces the compact sampler controls with the complete official ABC/semantic sampling configuration. |
-| `save_artifacts` | Saves reproducibility data: request, plan IDs, ABC, semantic IDs, latents, settings, timings, hashes, and audio. |
-| `vae_decode=auto` | Uses full decode only on a GPU with roughly 48 GB or more, otherwise tiled decode. |
+| `mode=full` | Generate or use a melody-and-chord ABC plan. |
+| `mode=melody` | Use a melody-only plan; recommended for covers and remixes. |
+| Empty `abc` | Direct generation (`off` mode internally). |
+| `max_duration` | Upper bound for semantic generation; the song may finish earlier. |
+| `KSampler steps=32` | Official acoustic midpoint-solver setting. |
+| `sampler=dpm_2` / `scheduler=sgm_uniform` | Defaults used by the official ComfyUI workflows. |
+| `cfg=1.0` | Native single-pass acoustic decoding. |
 
-### SheetSage2 ABC recovery
+`ABC Modifier`, `Vocal Range Retarget`, and `Melody Cleanup` run before semantic generation and are independent of INT8/BF16 model precision.
+
+### Legacy SheetSage2 ABC recovery
 
 `strict` remains the default and preserves upstream behavior. If melody-only
 ABC export fails on a decoded note that cannot be represented on the sub-beat
@@ -230,13 +221,12 @@ inventing harmony. Review it in an ABC editor before an important render.
 
 ## Compatibility
 
-The current fork has been exercised on Windows with:
+The native INT8 path has been exercised on Windows with:
 
 ```text
 ComfyUI       0.35
 Python        3.13
 PyTorch       2.11 + CUDA 13.0
-Transformers  5.14
 GPU           NVIDIA RTX 4090
 ```
 
@@ -245,12 +235,12 @@ Linux and other compatible NVIDIA GPUs should work, but the full matrix has not 
 ## Limitations
 
 - Model files are not included in this repository.
-- The YuE2 wheel must match the selected model release.
+- Legacy HF workflows require a YuE2 wheel matching their selected model release; native workflows do not use the wheel.
 - Reference audio is used to extract a symbolic score; it does not clone the original singer.
 - Vocal-only non-octave transposition changes the melody's harmonic relationship; octave shifts are the safe automatic default.
-- Memory presets are starting points, not guarantees: song length, drivers, attention backend, and other loaded ComfyUI models affect VRAM use.
+- Legacy memory presets are starting points, not guarantees. Native workflows use ComfyUI's normal model management.
 - YuE2 model weights are non-commercial. Review every upstream model license before use.
-- `external-flash` requires a compatible optional `flash-attn` installation; the default backend does not.
+- The legacy `external-flash` option requires a compatible optional `flash-attn` installation; native ComfyUI mode does not require it.
 
 ## Credits and license
 
@@ -266,3 +256,39 @@ upstream projects:
 - [`m-a-p/SheetSage2`](https://huggingface.co/m-a-p/SheetSage2)
 
 Node code is distributed under the repository [`LICENSE`](./LICENSE). Model weights and bundled upstream artifacts retain their own licenses; YuE2 weights are released under **CC BY-NC 4.0**.
+
+## YuE2 LoRA / LoKr adapters
+
+For most users, use **YuE2 Universal Adapter Loader (LoRA / LoKr)**. It detects supported YuE2 adapter formats and applies patches to the matching AR and/or NAR branch. Choose the Legacy or Native node that matches your pipeline.
+
+Chain Universal Loader nodes to stack adapters: `Base -> Adapter A -> Adapter B` gives `Base + A + B`. Changing the adapter in one node replaces that node's previous contribution. `ar_strength` affects AR patches and `nar_strength` affects NAR patches; NAR-only adapters ignore `ar_strength`, and AR-only adapters ignore `nar_strength`.
+
+### Legacy and Native
+
+- **Legacy** uses the original YuE2/HF runtime. Adapters are applied request-scoped; this backend remains available for existing workflows.
+- **Native** uses ComfyUI `ModelPatcher`. Adapters are applied to cloned patchers, leaving the base model clean. Use it with the newer Native YuE2 pipeline. Neither backend is inherently higher quality.
+
+### Supported adapter formats
+
+| Adapter format | Legacy | Native |
+| --- | --- | --- |
+| FL-YuE2 | Yes | Yes |
+| Starnodes raw `yue2-lora-v1` | Yes | Yes |
+| `comfyui-native-lora` | Yes | Yes |
+| PEFT/HF YuE2 LoRA | Yes | Yes |
+| HOT-Step fused LoRA | Yes | Yes |
+| HOT-Step native split | Yes | Yes |
+| HOT-Step native-split LoKr | Yes | Yes |
+| Mothersuperior YuE2 AR | Yes | Yes |
+| Yue2 Studio acoustic | Experimental | Experimental |
+| `yue2-artist-ar-v1` | No | No |
+
+The FL-specific **FL-YuE2 LoRA Pair Loader — Legacy** and **FL-YuE2 LoRA Pair Loader — Native** remain available for backward compatibility and for users who specifically want the FL-YuE2 AR/NAR pair format. Use the Universal loader for other formats.
+
+`yue2-artist-ar-v1` is unsupported because its `nar_lora_joint_v4.pt` companion is pinned NAR decoder state, not an ordinary strength-scaled LoRA. HOT-Step LoKr support is for the inference-ready `native_split_v1` export; fused LoKr checkpoint artifacts are not accepted directly. PEFT adapters need an `adapter_config.json` beside the weights and must have YuE2-compatible targets.
+
+### Training tools
+
+- [Starnodes2024/ComfyUI-YuE2-Trainer](https://github.com/Starnodes2024/ComfyUI-YuE2-Trainer)
+- [ComfyUI-FL-YuE2](https://github.com/filliptm/ComfyUI-FL-YuE2)
+- [HOT-Step-CPP](https://github.com/scragnog/HOT-Step-CPP)

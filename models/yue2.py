@@ -14,6 +14,7 @@ import gc
 import torch
 
 from .paths import resolve, vae_dir
+from ..lora.legacy import pipeline_context
 
 # 进程级管线缓存（键为构造参数）
 _cache: dict = {}
@@ -185,7 +186,7 @@ def generate(pipe, *, style: str, lyrics: str, cot: str = "full", seed: int = 83
     （预算 ≤12GB 为 512，否则 1024）。更小的值峰值显存更低、块数更多。
     on_vae_progress: ``(completed, total)`` 回调，VAE 分块解码每完成一块调用一次。
     """
-    with runtime_flags():
+    with pipeline_context(pipe) as pipe, runtime_flags():
         _with_ode_steps(pipe, ode_steps)
         orig_core = pipe.vae_core_frames
         if vae_tile_frames:
@@ -290,7 +291,7 @@ def plan(pipe, *, style: str, lyrics: str, cot: str = "full", seed: int = 831001
          abc: str | None = None, cfg_scale: float | None = None,
          abc_sampling: dict | None = None, on_progress=None):
     """只生成符号规划（ABC 乐谱），不合成音频。"""
-    with runtime_flags():
+    with pipeline_context(pipe) as pipe, runtime_flags():
         request = pipe._request(style=style, lyrics=lyrics, cot=cot, seed=int(seed),
                                 abc=abc, cfg_scale=cfg_scale)
         return pipe.plan(request=request, abc_sampling=abc_sampling,
@@ -300,7 +301,7 @@ def plan(pipe, *, style: str, lyrics: str, cot: str = "full", seed: int = 831001
 def render_plan(pipe, plan_result, *, semantic_sampling=None, ode_steps=None,
                 vae_decode="tiled", vae_tile_frames=None):
     """Run the official semantic -> NAR -> VAE stages for an exact plan object."""
-    with runtime_flags():
+    with pipeline_context(pipe) as pipe, runtime_flags():
         _with_ode_steps(pipe, ode_steps)
         semantic = pipe.generate_semantic(
             plan_result, sampling=semantic_sampling, cancelled=cancelled)

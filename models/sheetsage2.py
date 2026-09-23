@@ -15,16 +15,41 @@ from ..compat.sheetsage2 import load_sheetsage2
 from .paths import model_dirs, resolve
 
 _SAMPLE_RATE = 24000
+_SHEETSAGE2_REPO = "m-a-p/SheetSage2"
+_MERT2_REPO = "m-a-p/MERT-v2-FullSong"
+_SHEETSAGE2_REQUIRED = ("config.json", "model.safetensors", "modeling_sheetsage2.py")
+_MERT2_REQUIRED = (
+    "config.json", "model.safetensors", "configuration_mert2.py", "modeling_mert2.py",
+)
 _cache: dict = {}
+
+
+def _valid_snapshot(path: str, required: tuple[str, ...]) -> bool:
+    return os.path.isdir(path) and all(
+        os.path.isfile(os.path.join(path, name)) for name in required
+    )
+
+
+def _cached_snapshot(repo_id: str, required: tuple[str, ...]) -> str | None:
+    """Resolve an existing Hugging Face snapshot without network access."""
+    try:
+        from huggingface_hub import snapshot_download
+        candidate = snapshot_download(repo_id, local_files_only=True)
+    except Exception:
+        return None
+    return os.path.abspath(candidate) if _valid_snapshot(candidate, required) else None
 
 
 def _local_mert2(model_path: str, mert2_name: str = "auto") -> str | None:
     """解析本地 MERT2 父模型；auto 兼容独立目录和嵌套目录。"""
     if mert2_name and mert2_name != "auto":
         candidate = resolve("mert2", mert2_name)
-        if os.path.isdir(candidate):
+        if _valid_snapshot(candidate, _MERT2_REQUIRED):
             return os.path.abspath(candidate)
-        raise FileNotFoundError(f"Local MERT2 model directory does not exist: {candidate}")
+        raise FileNotFoundError(
+            f"Local MERT2 snapshot is missing or incomplete: {candidate}. "
+            f"Required files: {', '.join(_MERT2_REQUIRED)}"
+        )
 
     candidates = []
     if os.path.isdir(model_path):
@@ -32,19 +57,51 @@ def _local_mert2(model_path: str, mert2_name: str = "auto") -> str | None:
     for base in model_dirs("mert2"):
         candidates.extend((os.path.join(base, "MERT-v2-FullSong"), base))
     for candidate in candidates:
-        if (os.path.isfile(os.path.join(candidate, "config.json"))
-                and os.path.isfile(os.path.join(candidate, "model.safetensors"))):
+        if _valid_snapshot(candidate, _MERT2_REQUIRED):
             return os.path.abspath(candidate)
     return None
 
 
+def _cached_mert2() -> str | None:
+    return _cached_snapshot(_MERT2_REPO, _MERT2_REQUIRED)
+
+
+def _resolve_sheetsage2(model_name: str, allow_download: bool) -> str:
+    """Prefer a complete local/cache snapshot and never download implicitly."""
+    candidate = resolve("sheetsage2", model_name)
+    if _valid_snapshot(candidate, _SHEETSAGE2_REQUIRED):
+        return os.path.abspath(candidate)
+    repo_id = model_name if "/" in model_name else _SHEETSAGE2_REPO
+    cached = _cached_snapshot(repo_id, _SHEETSAGE2_REQUIRED)
+    if cached:
+        return cached
+    if allow_download:
+        return repo_id
+    raise FileNotFoundError(
+        "Legacy HF SheetSage2 snapshot was not found locally or in the existing "
+        "Hugging Face cache. No download was started. Use the native "
+        "models/audio_encoders/sheetsage2_bf16.safetensors workflow, install the "
+        "legacy snapshot under models/SheetSage2/, or explicitly allow downloads."
+    )
+
+
 def load(model_name: str = "SheetSage2", device: str = "cuda",
-         dtype: str = "bfloat16", mert2_name: str = "auto"):
+         dtype: str = "bfloat16", mert2_name: str = "auto",
+         allow_download: bool = False):
     """加载或复用 SheetSage2 模型。"""
-    path = resolve("sheetsage2", model_name)
-    base_path = _local_mert2(path, mert2_name)
+    path = _resolve_sheetsage2(model_name, bool(allow_download))
+    base_path = _local_mert2(path, mert2_name) or _cached_mert2()
+    if base_path is None and not allow_download:
+        raise FileNotFoundError(
+            "Legacy HF SheetSage2 needs MERT-v2-FullSong, but no local folder "
+            "or existing Hugging Face cache snapshot was found. No download was "
+            "started. Recommended: use YuE2 Native Pipeline Loader with "
+            "models/audio_encoders/sheetsage2_bf16.safetensors (MERT2 is already "
+            "embedded). For the legacy backend, place MERT-v2-FullSong under "
+            "models/MERT2/ or explicitly enable Hugging Face downloads in the loader."
+        )
     dt = torch.bfloat16 if dtype == "bfloat16" else torch.float32
-    key = (path, base_path, device, str(dt))
+    key = (path, base_path, device, str(dt), bool(allow_download))
     if _cache.get("key") == key and _cache.get("model") is not None:
         return _cache["model"]
 
@@ -54,7 +111,7 @@ def load(model_name: str = "SheetSage2", device: str = "cuda",
     if base_path:
         print(f"[ComfyUI-YuE2] SheetSage2 is using local MERT2: {base_path}")
     else:
-        print("[ComfyUI-YuE2] Local MERT2 not found; using the Hugging Face cache/download")
+        print("[ComfyUI-YuE2] Legacy SheetSage2: explicit Hugging Face download enabled")
     model = load_sheetsage2(path, device=device, dtype=dt,
                             base_model_path=base_path)
     _cache["model"] = model

@@ -1,24 +1,7 @@
-# ComfyUI-YuE2 dependencies
+# Native ComfyUI mode has no additional Python dependencies.
 #
-# This node reuses the torch / transformers / torchaudio / numpy / soundfile
-# packages already provided by ComfyUI and does not pin their versions here.
-
-# --- YuE2 song generation ---
-# Put the wheel distributed with the model in the model directory. The node
-# loads it in isolation; do not install this wheel with regular pip:
-#   ComfyUI/models/YuE2/YuE2-3B/yue2_infer-0.1.5-py3-none-any.whl
-tiktoken>=0.12           # Text and ABC tokenizer required by the YuE2 wheel
-huggingface-hub          # Local/remote model snapshot resolution
-safetensors              # Model weight loading
-accelerate               # Transformers model-loading helpers
-soundfile                # FLAC/WAV input and output
-
-# --- SheetSage2 audio transcription ---
-scipy                    # Numerical dependency used by mir_eval
-mir_eval>=0.8.2          # Chord and pitch evaluation used by the tokenizer
-pretty_midi>=0.2.10      # MIDI input and output
-mido>=1.3.3              # Low-level MIDI support
-
-# Do not add descript-audiotools: it belongs to the older YuE stack and forces
-# protobuf<3.20, which can damage a modern ComfyUI environment. Neither this
-# node nor the YuE2 wheel uses it. TensorBoard is also unnecessary here.
+# YuE2 and SheetSage2 are loaded through ComfyUI's built-in checkpoint and
+# audio-encoder implementations. Do not pip-install yue2_infer.
+#
+# Only users intentionally keeping an old isolated-HF workflow need:
+#   python -m pip install -r requirements-legacy.txt

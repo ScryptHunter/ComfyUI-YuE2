@@ -1,1 +1,1241 @@
-{"id":"5f1ad062-3183-4563-a8d5-f7e649ddaebc","revision":0,"last_node_id":32,"last_link_id":14,"nodes":[{"id":1,"type":"YuE2MemoryPreset","pos":[20,40],"size":[270,118],"flags":{},"order":0,"mode":0,"inputs":[{"localized_name":"vram","name":"vram","type":"COMBO","widget":{"name":"vram"},"link":null}],"outputs":[{"localized_name":"memory_budget_gib","name":"memory_budget_gib","type":"INT","links":[1]},{"localized_name":"offload_ar","name":"offload_ar","type":"BOOLEAN","links":[]},{"localized_name":"vae_decode","name":"vae_decode","type":"STRING","links":[]},{"localized_name":"vae_tile_frames","name":"vae_tile_frames","type":"INT","links":[]}],"title":"Optional GPU Memory Preset","properties":{"aux_id":"ScryptHunter/ComfyUI-YuE2","ver":"fd0d9e588decacde9a5e4c547035d900f3ae5113","Node name for S&R":"YuE2MemoryPreset","ue_properties":{"widget_ue_connectable":{},"input_ue_unconnectable":{},"version":"7.8"}},"widgets_values":["48 GB"],"widgets_values_named":{"vram":"48 GB"}},{"id":25,"type":"YuE2Unload","pos":[900,420],"size":[270,110],"flags":{},"order":6,"mode":4,"inputs":[{"localized_name":"pipeline","name":"pipeline","type":"YUE2_PIPE","link":5}],"outputs":[],"properties":{"aux_id":"ScryptHunter/ComfyUI-YuE2","ver":"fd0d9e588decacde9a5e4c547035d900f3ae5113","Node name for S&R":"YuE2Unload","ue_properties":{"widget_ue_connectable":{},"input_ue_unconnectable":{},"version":"7.8"}},"widgets_values_named":{}},{"id":5,"type":"YuE2SamplingSettings","pos":[20,500],"size":[310,520],"flags":{},"order":1,"mode":0,"inputs":[{"localized_name":"preset","name":"preset","type":"COMBO","widget":{"name":"preset"},"link":null},{"localized_name":"abc_temperature","name":"abc_temperature","type":"FLOAT","widget":{"name":"abc_temperature"},"link":null},{"localized_name":"abc_top_p","name":"abc_top_p","type":"FLOAT","widget":{"name":"abc_top_p"},"link":null},{"localized_name":"abc_top_k","name":"abc_top_k","type":"INT","widget":{"name":"abc_top_k"},"link":null},{"localized_name":"abc_repetition_penalty","name":"abc_repetition_penalty","type":"FLOAT","widget":{"name":"abc_repetition_penalty"},"link":null},{"localized_name":"abc_penalty_window","name":"abc_penalty_window","type":"INT","widget":{"name":"abc_penalty_window"},"link":null},{"localized_name":"abc_min_tokens","name":"abc_min_tokens","type":"INT","widget":{"name":"abc_min_tokens"},"link":null},{"localized_name":"abc_max_tokens","name":"abc_max_tokens","type":"INT","widget":{"name":"abc_max_tokens"},"link":null},{"localized_name":"semantic_temperature","name":"semantic_temperature","type":"FLOAT","widget":{"name":"semantic_temperature"},"link":null},{"localized_name":"semantic_top_p","name":"semantic_top_p","type":"FLOAT","widget":{"name":"semantic_top_p"},"link":null},{"localized_name":"semantic_top_k","name":"semantic_top_k","type":"INT","widget":{"name":"semantic_top_k"},"link":null},{"localized_name":"semantic_repetition_penalty","name":"semantic_repetition_penalty","type":"FLOAT","widget":{"name":"semantic_repetition_penalty"},"link":null},{"localized_name":"semantic_penalty_window","name":"semantic_penalty_window","type":"INT","widget":{"name":"semantic_penalty_window"},"link":null},{"localized_name":"semantic_min_tokens","name":"semantic_min_tokens","type":"INT","widget":{"name":"semantic_min_tokens"},"link":null},{"localized_name":"semantic_max_tokens","name":"semantic_max_tokens","type":"INT","widget":{"name":"semantic_max_tokens"},"link":null}],"outputs":[{"localized_name":"settings","name":"settings","type":"YUE2_SAMPLING","links":[3]},{"localized_name":"info","name":"info","type":"STRING","links":[]}],"properties":{"aux_id":"ScryptHunter/ComfyUI-YuE2","ver":"fd0d9e588decacde9a5e4c547035d900f3ae5113","Node name for S&R":"YuE2SamplingSettings","ue_properties":{"widget_ue_connectable":{},"input_ue_unconnectable":{},"version":"7.8"}},"widgets_values":["official",0.7,0.9,30,1.005,100,32,4096,1,0.95,100,1.2,50,200,9000],"widgets_values_named":{"preset":"official","abc_temperature":0.7,"abc_top_p":0.9,"abc_top_k":30,"abc_repetition_penalty":1.005,"abc_penalty_window":100,"abc_min_tokens":32,"abc_max_tokens":4096,"semantic_temperature":1,"semantic_top_p":0.95,"semantic_top_k":100,"semantic_repetition_penalty":1.2,"semantic_penalty_window":50,"semantic_min_tokens":200,"semantic_max_tokens":9000},"color":"#232","bgcolor":"#353"},{"id":2,"type":"YuE2Loader","pos":[10.000000000000009,205.99990844726562],"size":[300,226],"flags":{},"order":4,"mode":0,"inputs":[{"localized_name":"model","name":"model","type":"COMBO","widget":{"name":"model"},"link":null},{"localized_name":"vae","name":"vae","type":"COMBO","widget":{"name":"vae"},"link":null},{"localized_name":"device","name":"device","type":"COMBO","widget":{"name":"device"},"link":null},{"localized_name":"memory_budget_gib","name":"memory_budget_gib","type":"INT","widget":{"name":"memory_budget_gib"},"link":1},{"localized_name":"offload_ar","name":"offload_ar","type":"BOOLEAN","widget":{"name":"offload_ar"},"link":null},{"localized_name":"offline","name":"offline","type":"BOOLEAN","widget":{"name":"offline"},"link":null},{"localized_name":"attention_backend","name":"attention_backend","type":"COMBO","widget":{"name":"attention_backend"},"link":null},{"localized_name":"quantization","name":"quantization","type":"COMBO","widget":{"name":"quantization"},"link":null}],"outputs":[{"localized_name":"pipeline","name":"pipeline","type":"YUE2_PIPE","links":[2,5]}],"properties":{"aux_id":"ScryptHunter/ComfyUI-YuE2","ver":"fd0d9e588decacde9a5e4c547035d900f3ae5113","Node name for S&R":"YuE2Loader","ue_properties":{"widget_ue_connectable":{},"input_ue_unconnectable":{},"version":"7.8"}},"widgets_values":["YuE2-3B","YuE2-Vae","cuda",24,false,true,"auto","none"],"widgets_values_named":{"model":"YuE2-3B","vae":"YuE2-Vae","device":"cuda","memory_budget_gib":24,"offload_ar":false,"offline":true,"attention_backend":"auto","quantization":"none"}},{"id":27,"type":"YuE2Sampler","pos":[391.6529303936919,66.94216452354239],"size":[430,650],"flags":{},"order":5,"mode":0,"inputs":[{"localized_name":"pipeline","name":"pipeline","type":"YUE2_PIPE","link":2},{"localized_name":"abc","name":"abc","shape":7,"type":"STRING","link":null},{"localized_name":"sampling_settings","name":"sampling_settings","shape":7,"type":"YUE2_SAMPLING","link":3},{"localized_name":"style","name":"style","type":"STRING","widget":{"name":"style"},"link":6},{"localized_name":"lyrics","name":"lyrics","type":"STRING","widget":{"name":"lyrics"},"link":null},{"localized_name":"cot","name":"cot","type":"COMBO","widget":{"name":"cot"},"link":null},{"localized_name":"seed","name":"seed","type":"INT","widget":{"name":"seed"},"link":null},{"localized_name":"cfg_scale","name":"cfg_scale","type":"FLOAT","widget":{"name":"cfg_scale"},"link":null},{"localized_name":"ode_steps","name":"ode_steps","type":"INT","widget":{"name":"ode_steps"},"link":null},{"localized_name":"abc_max_tokens","name":"abc_max_tokens","type":"INT","widget":{"name":"abc_max_tokens"},"link":null},{"localized_name":"semantic_max_tokens","name":"semantic_max_tokens","type":"INT","widget":{"name":"semantic_max_tokens"},"link":null},{"localized_name":"abc_temperature","name":"abc_temperature","type":"FLOAT","widget":{"name":"abc_temperature"},"link":null},{"localized_name":"semantic_temperature","name":"semantic_temperature","type":"FLOAT","widget":{"name":"semantic_temperature"},"link":null},{"localized_name":"save_flac","name":"save_flac","type":"BOOLEAN","widget":{"name":"save_flac"},"link":null},{"localized_name":"save_abc","name":"save_abc","type":"BOOLEAN","widget":{"name":"save_abc"},"link":null},{"localized_name":"vae_decode","name":"vae_decode","type":"COMBO","widget":{"name":"vae_decode"},"link":null},{"localized_name":"vae_tile_frames","name":"vae_tile_frames","type":"INT","widget":{"name":"vae_tile_frames"},"link":null},{"localized_name":"abort_after_plan","name":"abort_after_plan","shape":7,"type":"BOOLEAN","widget":{"name":"abort_after_plan"},"link":null},{"localized_name":"save_artifacts","name":"save_artifacts","shape":7,"type":"BOOLEAN","widget":{"name":"save_artifacts"},"link":null}],"outputs":[{"localized_name":"audio","name":"audio","type":"AUDIO","links":[4]},{"localized_name":"abc_score","name":"abc_score","type":"STRING","links":[]},{"localized_name":"info","name":"info","type":"STRING","links":[]}],"title":"All-in-one Generator (alternative) ⏱ 2m42.6s","properties":{"aux_id":"ScryptHunter/ComfyUI-YuE2","ver":"fd0d9e588decacde9a5e4c547035d900f3ae5113","Node name for S&R":"YuE2Sampler","ue_properties":{"widget_ue_connectable":{},"input_ue_unconnectable":{},"version":"7.8"}},"widgets_values":["English indie pop, warm female vocal, clean electric guitar, soft analog synths, restrained drums, intimate delivery, hopeful nocturnal mood","[verse]\nCity lights are fading slowly\nMorning waits beyond the blue\nEmpty roads begin to open\nEvery turn is leading through\n\n[chorus]\nCarry every spark of wonder\nHold it close against the night\nEven when the rain is falling\nWe can follow hidden light\n\n[verse]\nDistant windows wake like embers\nSilver clouds begin to move\nAll the words we left unspoken\nFind a quiet place to bloom\n\n[bridge]\nStay until the sky is changing\nStay until the shadows go\n\n[final chorus]\nCarry every spark of wonder\nLet it guide us into light\n","full",188297206606803,"randomize",-1,32,4096,9000,0.7,1,false,true,"auto",false,false,false],"widgets_values_named":{"style":"English indie pop, warm female vocal, clean electric guitar, soft analog synths, restrained drums, intimate delivery, hopeful nocturnal mood","lyrics":"[verse]\nCity lights are fading slowly\nMorning waits beyond the blue\nEmpty roads begin to open\nEvery turn is leading through\n\n[chorus]\nCarry every spark of wonder\nHold it close against the night\nEven when the rain is falling\nWe can follow hidden light\n\n[verse]\nDistant windows wake like embers\nSilver clouds begin to move\nAll the words we left unspoken\nFind a quiet place to bloom\n\n[bridge]\nStay until the sky is changing\nStay until the shadows go\n\n[final chorus]\nCarry every spark of wonder\nLet it guide us into light\n","cot":"full","seed":188297206606803,"control_after_generate":"randomize","cfg_scale":-1,"ode_steps":32,"abc_max_tokens":4096,"semantic_max_tokens":9000,"abc_temperature":0.7,"semantic_temperature":1,"save_flac":false,"save_abc":true,"vae_decode":"auto","vae_tile_frames":false,"abort_after_plan":false,"save_artifacts":false},"color":"#322","bgcolor":"#533"},{"id":4,"type":"YuE2LyricsStructurer","pos":[1202.441398528531,865.9192230018396],"size":[307.73203125,298.1460560820592],"flags":{},"order":2,"mode":4,"inputs":[{"localized_name":"lyrics_text","name":"lyrics_text","type":"STRING","widget":{"name":"lyrics_text"},"link":null},{"localized_name":"structure","name":"structure","type":"STRING","widget":{"name":"structure"},"link":null},{"localized_name":"verse_lines","name":"verse_lines","type":"INT","widget":{"name":"verse_lines"},"link":null},{"localized_name":"section_plan","name":"section_plan","type":"STRING","widget":{"name":"section_plan"},"link":null}],"outputs":[{"localized_name":"lyrics","name":"lyrics","type":"STRING","links":[]},{"localized_name":"report","name":"report","type":"STRING","links":[]}],"properties":{"aux_id":"ScryptHunter/ComfyUI-YuE2","ver":"fd0d9e588decacde9a5e4c547035d900f3ae5113","Node name for S&R":"YuE2LyricsStructurer","ue_properties":{"widget_ue_connectable":{},"input_ue_unconnectable":{},"version":"7.8"}},"widgets_values":["City lights are fading slowly\nMorning waits beyond the blue\nEmpty roads begin to open\nEvery turn is leading through\nCarry every spark of wonder\nHold it close against the night\nEven when the rain is falling\nWe can follow hidden light\nDistant windows wake like embers\nSilver clouds begin to move\nAll the words we left unspoken\nFind a quiet place to bloom\nStay until the sky is changing\nStay until the shadows go\nCarry every spark of wonder\nLet it guide us into light","",4,"verse:2,chorus:2"],"widgets_values_named":{"lyrics_text":"City lights are fading slowly\nMorning waits beyond the blue\nEmpty roads begin to open\nEvery turn is leading through\nCarry every spark of wonder\nHold it close against the night\nEven when the rain is falling\nWe can follow hidden light\nDistant windows wake like embers\nSilver clouds begin to move\nAll the words we left unspoken\nFind a quiet place to bloom\nStay until the sky is changing\nStay until the shadows go\nCarry every spark of wonder\nLet it guide us into light","structure":"","verse_lines":4,"section_plan":"verse:2,chorus:2"}},{"id":3,"type":"YuE2StyleBuilder","pos":[381.9055666640841,874.6000681617471],"size":[764.0805038904859,354.91972601632733],"flags":{},"order":3,"mode":0,"inputs":[{"localized_name":"language","name":"language","type":"STRING","widget":{"name":"language"},"link":null},{"localized_name":"genre","name":"genre","type":"STRING","widget":{"name":"genre"},"link":null},{"localized_name":"secondary_genres","name":"secondary_genres","type":"STRING","widget":{"name":"secondary_genres"},"link":null},{"localized_name":"era","name":"era","type":"STRING","widget":{"name":"era"},"link":null},{"localized_name":"vocal","name":"vocal","type":"STRING","widget":{"name":"vocal"},"link":null},{"localized_name":"instruments","name":"instruments","type":"STRING","widget":{"name":"instruments"},"link":null},{"localized_name":"drums","name":"drums","type":"STRING","widget":{"name":"drums"},"link":null},{"localized_name":"mood","name":"mood","type":"STRING","widget":{"name":"mood"},"link":null},{"localized_name":"tempo","name":"tempo","type":"STRING","widget":{"name":"tempo"},"link":null},{"localized_name":"extra","name":"extra","type":"STRING","widget":{"name":"extra"},"link":null}],"outputs":[{"localized_name":"style","name":"style","type":"STRING","links":[6]}],"title":"YuE2 Style Prompt Builder ⏱ 0.0s","properties":{"aux_id":"ScryptHunter/ComfyUI-YuE2","ver":"fd0d9e588decacde9a5e4c547035d900f3ae5113","Node name for S&R":"YuE2StyleBuilder","ue_properties":{"widget_ue_connectable":{},"input_ue_unconnectable":{},"version":"7.8"}},"widgets_values":["English","indie pop","dream pop, alternative pop","modern","female, warm, intimate","clean electric guitar, soft analog synths","restrained acoustic drums","hopeful, nocturnal, reflective","mid-tempo",""],"widgets_values_named":{"language":"English","genre":"indie pop","secondary_genres":"dream pop, alternative pop","era":"modern","vocal":"female, warm, intimate","instruments":"clean electric guitar, soft analog synths","drums":"restrained acoustic drums","mood":"hopeful, nocturnal, reflective","tempo":"mid-tempo","extra":""},"color":"#232","bgcolor":"#353"},{"id":29,"type":"SaveAudioAdvanced","pos":[880,160],"size":[445.8076748751232,160],"flags":{},"order":7,"mode":0,"inputs":[{"localized_name":"audio","name":"audio","type":"AUDIO","link":4},{"localized_name":"filename_prefix","name":"filename_prefix","type":"STRING","widget":{"name":"filename_prefix"},"link":null},{"localized_name":"format","name":"format","type":"COMFY_DYNAMICCOMBO_V3","widget":{"name":"format"},"link":null},{"localized_name":"quality","name":"format.quality","type":"COMBO","widget":{"name":"format.quality"},"link":null},{"localized_name":"audioUI","name":"audioUI","type":"AUDIO_UI","widget":{"name":"audioUI"},"link":null}],"outputs":[{"localized_name":"audio","name":"audio","type":"AUDIO","links":null}],"title":"Save Audio (Advanced) ⏱ 8.4s","properties":{"cnr_id":"comfy-core","ver":"0.35.0","Node name for S&R":"SaveAudioAdvanced","ue_properties":{"widget_ue_connectable":{},"input_ue_unconnectable":{},"version":"7.8"}},"widgets_values":["audio/ComfyUI","mp3","V0"],"widgets_values_named":{"filename_prefix":"audio/ComfyUI","format":"mp3","format.quality":"V0"},"color":"#232","bgcolor":"#353"}],"links":[[1,1,0,2,3,"INT"],[2,2,0,27,0,"YUE2_PIPE"],[3,5,0,27,2,"YUE2_SAMPLING"],[4,27,0,29,0,"AUDIO"],[5,2,0,25,0,"YUE2_PIPE"],[6,3,0,27,3,"STRING"]],"groups":[{"id":1,"title":"TEXT TO SONG ? no reference audio required","bounding":[0,0,1190,730],"color":"#3f789e","flags":{}},{"id":2,"title":"Optional prompt and lyrics helpers","bounding":[366.6115954690729,798.9256198347109,800,390],"color":"#82508f","flags":{}}],"config":{},"extra":{"ds":{"scale":0.6611570247933896,"offset":[367.0467503043107,328.7604651140164]},"frontendVersion":"1.51.10","ue_links":[],"anomalous_hashes":{},"links_added_by_ue":[]},"version":0.4}
+{
+  "id": "1c23fc19-e540-4df2-820b-571eabbdb761",
+  "revision": 0,
+  "last_node_id": 33,
+  "last_link_id": 17,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "YuE2MemoryPreset",
+      "pos": [
+        41.96149999999995,
+        83.92299999999994
+      ],
+      "size": [
+        287.56926702117903,
+        118
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "vram",
+          "name": "vram",
+          "type": "COMBO",
+          "widget": {
+            "name": "vram"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "memory_budget_gib",
+          "name": "memory_budget_gib",
+          "type": "INT",
+          "links": [
+            1
+          ]
+        },
+        {
+          "localized_name": "offload_ar",
+          "name": "offload_ar",
+          "type": "BOOLEAN",
+          "links": []
+        },
+        {
+          "localized_name": "vae_decode",
+          "name": "vae_decode",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "vae_tile_frames",
+          "name": "vae_tile_frames",
+          "type": "INT",
+          "links": []
+        }
+      ],
+      "title": "Optional GPU Memory Preset",
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "fd0d9e588decacde9a5e4c547035d900f3ae5113",
+        "Node name for S&R": "YuE2MemoryPreset",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "48 GB"
+      ],
+      "widgets_values_named": {
+        "vram": "48 GB"
+      }
+    },
+    {
+      "id": 25,
+      "type": "YuE2Unload",
+      "pos": [
+        557.4005776596081,
+        929.5067888298029
+      ],
+      "size": [
+        270,
+        110
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 4,
+      "inputs": [
+        {
+          "localized_name": "pipeline",
+          "name": "pipeline",
+          "type": "YUE2_PIPE",
+          "link": 16
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "fd0d9e588decacde9a5e4c547035d900f3ae5113",
+        "Node name for S&R": "YuE2Unload",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "YuE2SamplingSettings",
+      "pos": [
+        387.4890776596061,
+        90.05186037254475
+      ],
+      "size": [
+        401.90390625,
+        585.8844999999999
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "preset",
+          "name": "preset",
+          "type": "COMBO",
+          "widget": {
+            "name": "preset"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "abc_temperature",
+          "name": "abc_temperature",
+          "type": "FLOAT",
+          "widget": {
+            "name": "abc_temperature"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "abc_top_p",
+          "name": "abc_top_p",
+          "type": "FLOAT",
+          "widget": {
+            "name": "abc_top_p"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "abc_top_k",
+          "name": "abc_top_k",
+          "type": "INT",
+          "widget": {
+            "name": "abc_top_k"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "abc_repetition_penalty",
+          "name": "abc_repetition_penalty",
+          "type": "FLOAT",
+          "widget": {
+            "name": "abc_repetition_penalty"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "abc_penalty_window",
+          "name": "abc_penalty_window",
+          "type": "INT",
+          "widget": {
+            "name": "abc_penalty_window"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "abc_min_tokens",
+          "name": "abc_min_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "abc_min_tokens"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "abc_max_tokens",
+          "name": "abc_max_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "abc_max_tokens"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "semantic_temperature",
+          "name": "semantic_temperature",
+          "type": "FLOAT",
+          "widget": {
+            "name": "semantic_temperature"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "semantic_top_p",
+          "name": "semantic_top_p",
+          "type": "FLOAT",
+          "widget": {
+            "name": "semantic_top_p"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "semantic_top_k",
+          "name": "semantic_top_k",
+          "type": "INT",
+          "widget": {
+            "name": "semantic_top_k"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "semantic_repetition_penalty",
+          "name": "semantic_repetition_penalty",
+          "type": "FLOAT",
+          "widget": {
+            "name": "semantic_repetition_penalty"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "semantic_penalty_window",
+          "name": "semantic_penalty_window",
+          "type": "INT",
+          "widget": {
+            "name": "semantic_penalty_window"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "semantic_min_tokens",
+          "name": "semantic_min_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "semantic_min_tokens"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "semantic_max_tokens",
+          "name": "semantic_max_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "semantic_max_tokens"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "settings",
+          "name": "settings",
+          "type": "YUE2_SAMPLING",
+          "links": [
+            3
+          ]
+        },
+        {
+          "localized_name": "info",
+          "name": "info",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "title": "YuE2 Advanced Sampling Settings (Legacy HF) ⏱ 0.0s",
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "fd0d9e588decacde9a5e4c547035d900f3ae5113",
+        "Node name for S&R": "YuE2SamplingSettings",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "official",
+        0.7,
+        0.9,
+        30,
+        1.005,
+        100,
+        32,
+        4096,
+        1,
+        0.95,
+        100,
+        1.2,
+        50,
+        200,
+        9000
+      ],
+      "widgets_values_named": {
+        "preset": "official",
+        "abc_temperature": 0.7,
+        "abc_top_p": 0.9,
+        "abc_top_k": 30,
+        "abc_repetition_penalty": 1.005,
+        "abc_penalty_window": 100,
+        "abc_min_tokens": 32,
+        "abc_max_tokens": 4096,
+        "semantic_temperature": 1,
+        "semantic_top_p": 0.95,
+        "semantic_top_k": 100,
+        "semantic_repetition_penalty": 1.2,
+        "semantic_penalty_window": 50,
+        "semantic_min_tokens": 200,
+        "semantic_max_tokens": 9000
+      },
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 2,
+      "type": "YuE2Loader",
+      "pos": [
+        31.961499999999976,
+        266.0280140323637
+      ],
+      "size": [
+        300,
+        226
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "COMBO",
+          "widget": {
+            "name": "model"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "type": "COMBO",
+          "widget": {
+            "name": "vae"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "device",
+          "name": "device",
+          "type": "COMBO",
+          "widget": {
+            "name": "device"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "memory_budget_gib",
+          "name": "memory_budget_gib",
+          "type": "INT",
+          "widget": {
+            "name": "memory_budget_gib"
+          },
+          "link": 1
+        },
+        {
+          "localized_name": "offload_ar",
+          "name": "offload_ar",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "offload_ar"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "offline",
+          "name": "offline",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "offline"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "attention_backend",
+          "name": "attention_backend",
+          "type": "COMBO",
+          "widget": {
+            "name": "attention_backend"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "quantization",
+          "name": "quantization",
+          "type": "COMBO",
+          "widget": {
+            "name": "quantization"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "pipeline",
+          "name": "pipeline",
+          "type": "YUE2_PIPE",
+          "links": [
+            15
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "fd0d9e588decacde9a5e4c547035d900f3ae5113",
+        "Node name for S&R": "YuE2Loader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "YuE2-3B",
+        "YuE2-Vae",
+        "cuda",
+        24,
+        false,
+        true,
+        "auto",
+        "none"
+      ],
+      "widgets_values_named": {
+        "model": "YuE2-3B",
+        "vae": "YuE2-Vae",
+        "device": "cuda",
+        "memory_budget_gib": 24,
+        "offload_ar": false,
+        "offline": true,
+        "attention_backend": "auto",
+        "quantization": "none"
+      }
+    },
+    {
+      "id": 27,
+      "type": "YuE2Sampler",
+      "pos": [
+        902.6238527340837,
+        77.19081984275623
+      ],
+      "size": [
+        416.8231893615723,
+        601.684655319214
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "pipeline",
+          "name": "pipeline",
+          "type": "YUE2_PIPE",
+          "link": 17
+        },
+        {
+          "localized_name": "abc",
+          "name": "abc",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "localized_name": "sampling_settings",
+          "name": "sampling_settings",
+          "shape": 7,
+          "type": "YUE2_SAMPLING",
+          "link": 3
+        },
+        {
+          "localized_name": "style",
+          "name": "style",
+          "type": "STRING",
+          "widget": {
+            "name": "style"
+          },
+          "link": 6
+        },
+        {
+          "localized_name": "lyrics",
+          "name": "lyrics",
+          "type": "STRING",
+          "widget": {
+            "name": "lyrics"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cot",
+          "name": "cot",
+          "type": "COMBO",
+          "widget": {
+            "name": "cot"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cfg_scale",
+          "name": "cfg_scale",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg_scale"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "ode_steps",
+          "name": "ode_steps",
+          "type": "INT",
+          "widget": {
+            "name": "ode_steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "abc_max_tokens",
+          "name": "abc_max_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "abc_max_tokens"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "semantic_max_tokens",
+          "name": "semantic_max_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "semantic_max_tokens"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "abc_temperature",
+          "name": "abc_temperature",
+          "type": "FLOAT",
+          "widget": {
+            "name": "abc_temperature"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "semantic_temperature",
+          "name": "semantic_temperature",
+          "type": "FLOAT",
+          "widget": {
+            "name": "semantic_temperature"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "save_flac",
+          "name": "save_flac",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "save_flac"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "save_abc",
+          "name": "save_abc",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "save_abc"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "vae_decode",
+          "name": "vae_decode",
+          "type": "COMBO",
+          "widget": {
+            "name": "vae_decode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "vae_tile_frames",
+          "name": "vae_tile_frames",
+          "type": "INT",
+          "widget": {
+            "name": "vae_tile_frames"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "abort_after_plan",
+          "name": "abort_after_plan",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "abort_after_plan"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "save_artifacts",
+          "name": "save_artifacts",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "save_artifacts"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "links": [
+            4
+          ]
+        },
+        {
+          "localized_name": "abc_score",
+          "name": "abc_score",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "info",
+          "name": "info",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "title": "All-in-one Generator (alternative) ⏱ 2m42.6s",
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "fd0d9e588decacde9a5e4c547035d900f3ae5113",
+        "Node name for S&R": "YuE2Sampler",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "English indie pop, warm female vocal, clean electric guitar, soft analog synths, restrained drums, intimate delivery, hopeful nocturnal mood",
+        "[verse]\nCity lights are fading slowly\nMorning waits beyond the blue\nEmpty roads begin to open\nEvery turn is leading through\n\n[chorus]\nCarry every spark of wonder\nHold it close against the night\nEven when the rain is falling\nWe can follow hidden light\n\n[verse]\nDistant windows wake like embers\nSilver clouds begin to move\nAll the words we left unspoken\nFind a quiet place to bloom\n\n[bridge]\nStay until the sky is changing\nStay until the shadows go\n\n[final chorus]\nCarry every spark of wonder\nLet it guide us into light\n",
+        "full",
+        188297206606803,
+        "randomize",
+        -1,
+        32,
+        4096,
+        9000,
+        0.7,
+        1,
+        false,
+        true,
+        "auto",
+        false,
+        false,
+        false
+      ],
+      "widgets_values_named": {
+        "style": "English indie pop, warm female vocal, clean electric guitar, soft analog synths, restrained drums, intimate delivery, hopeful nocturnal mood",
+        "lyrics": "[verse]\nCity lights are fading slowly\nMorning waits beyond the blue\nEmpty roads begin to open\nEvery turn is leading through\n\n[chorus]\nCarry every spark of wonder\nHold it close against the night\nEven when the rain is falling\nWe can follow hidden light\n\n[verse]\nDistant windows wake like embers\nSilver clouds begin to move\nAll the words we left unspoken\nFind a quiet place to bloom\n\n[bridge]\nStay until the sky is changing\nStay until the shadows go\n\n[final chorus]\nCarry every spark of wonder\nLet it guide us into light\n",
+        "cot": "full",
+        "seed": 188297206606803,
+        "control_after_generate": "randomize",
+        "cfg_scale": -1,
+        "ode_steps": 32,
+        "abc_max_tokens": 4096,
+        "semantic_max_tokens": 9000,
+        "abc_temperature": 0.7,
+        "semantic_temperature": 1,
+        "save_flac": false,
+        "save_abc": true,
+        "vae_decode": "auto",
+        "vae_tile_frames": false,
+        "abort_after_plan": false,
+        "save_artifacts": false
+      },
+      "color": "#322",
+      "bgcolor": "#533"
+    },
+    {
+      "id": 4,
+      "type": "YuE2LyricsStructurer",
+      "pos": [
+        906.6933549112836,
+        751.7193224700711
+      ],
+      "size": [
+        380.206640625,
+        298.1460560820592
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 4,
+      "inputs": [
+        {
+          "localized_name": "lyrics_text",
+          "name": "lyrics_text",
+          "type": "STRING",
+          "widget": {
+            "name": "lyrics_text"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "structure",
+          "name": "structure",
+          "type": "STRING",
+          "widget": {
+            "name": "structure"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "verse_lines",
+          "name": "verse_lines",
+          "type": "INT",
+          "widget": {
+            "name": "verse_lines"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "section_plan",
+          "name": "section_plan",
+          "type": "STRING",
+          "widget": {
+            "name": "section_plan"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "lyrics",
+          "name": "lyrics",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "report",
+          "name": "report",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "title": "YuE2 Lyrics Structurer (Text to Sections) ⏱ 1m21.6s",
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "fd0d9e588decacde9a5e4c547035d900f3ae5113",
+        "Node name for S&R": "YuE2LyricsStructurer",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "City lights are fading slowly\nMorning waits beyond the blue\nEmpty roads begin to open\nEvery turn is leading through\nCarry every spark of wonder\nHold it close against the night\nEven when the rain is falling\nWe can follow hidden light\nDistant windows wake like embers\nSilver clouds begin to move\nAll the words we left unspoken\nFind a quiet place to bloom\nStay until the sky is changing\nStay until the shadows go\nCarry every spark of wonder\nLet it guide us into light",
+        "",
+        4,
+        "verse:2,chorus:2"
+      ],
+      "widgets_values_named": {
+        "lyrics_text": "City lights are fading slowly\nMorning waits beyond the blue\nEmpty roads begin to open\nEvery turn is leading through\nCarry every spark of wonder\nHold it close against the night\nEven when the rain is falling\nWe can follow hidden light\nDistant windows wake like embers\nSilver clouds begin to move\nAll the words we left unspoken\nFind a quiet place to bloom\nStay until the sky is changing\nStay until the shadows go\nCarry every spark of wonder\nLet it guide us into light",
+        "structure": "",
+        "verse_lines": 4,
+        "section_plan": "verse:2,chorus:2"
+      }
+    },
+    {
+      "id": 3,
+      "type": "YuE2StyleBuilder",
+      "pos": [
+        33.449833685264096,
+        1190.8456458213545
+      ],
+      "size": [
+        764.0805038904859,
+        354.91972601632733
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "language",
+          "name": "language",
+          "type": "STRING",
+          "widget": {
+            "name": "language"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "genre",
+          "name": "genre",
+          "type": "STRING",
+          "widget": {
+            "name": "genre"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "secondary_genres",
+          "name": "secondary_genres",
+          "type": "STRING",
+          "widget": {
+            "name": "secondary_genres"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "era",
+          "name": "era",
+          "type": "STRING",
+          "widget": {
+            "name": "era"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "vocal",
+          "name": "vocal",
+          "type": "STRING",
+          "widget": {
+            "name": "vocal"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "instruments",
+          "name": "instruments",
+          "type": "STRING",
+          "widget": {
+            "name": "instruments"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "drums",
+          "name": "drums",
+          "type": "STRING",
+          "widget": {
+            "name": "drums"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mood",
+          "name": "mood",
+          "type": "STRING",
+          "widget": {
+            "name": "mood"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "tempo",
+          "name": "tempo",
+          "type": "STRING",
+          "widget": {
+            "name": "tempo"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "extra",
+          "name": "extra",
+          "type": "STRING",
+          "widget": {
+            "name": "extra"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "style",
+          "name": "style",
+          "type": "STRING",
+          "links": [
+            6
+          ]
+        }
+      ],
+      "title": "YuE2 Style Prompt Builder ⏱ 1m12.5s",
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "fd0d9e588decacde9a5e4c547035d900f3ae5113",
+        "Node name for S&R": "YuE2StyleBuilder",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "English",
+        "indie pop",
+        "dream pop, alternative pop",
+        "modern",
+        "female, warm, intimate",
+        "clean electric guitar, soft analog synths",
+        "restrained acoustic drums",
+        "hopeful, nocturnal, reflective",
+        "mid-tempo",
+        ""
+      ],
+      "widgets_values_named": {
+        "language": "English",
+        "genre": "indie pop",
+        "secondary_genres": "dream pop, alternative pop",
+        "era": "modern",
+        "vocal": "female, warm, intimate",
+        "instruments": "clean electric guitar, soft analog synths",
+        "drums": "restrained acoustic drums",
+        "mood": "hopeful, nocturnal, reflective",
+        "tempo": "mid-tempo",
+        "extra": ""
+      },
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 29,
+      "type": "SaveAudioAdvanced",
+      "pos": [
+        1399.7552765960684,
+        86.79500000000014
+      ],
+      "size": [
+        289.1490195559095,
+        164.3923446807861
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 4
+        },
+        {
+          "localized_name": "filename_prefix",
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "format",
+          "name": "format",
+          "type": "COMFY_DYNAMICCOMBO_V3",
+          "widget": {
+            "name": "format"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "quality",
+          "name": "format.quality",
+          "type": "COMBO",
+          "widget": {
+            "name": "format.quality"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "audioUI",
+          "name": "audioUI",
+          "type": "AUDIO_UI",
+          "widget": {
+            "name": "audioUI"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "links": null
+        }
+      ],
+      "title": "Save Audio (Advanced) ⏱ 8.4s",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.35.0",
+        "Node name for S&R": "SaveAudioAdvanced",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "audio/ComfyUI",
+        "mp3",
+        "V0"
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "audio/ComfyUI",
+        "format": "mp3",
+        "format.quality": "V0"
+      },
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 33,
+      "type": "YuE2UniversalAdapterLoader",
+      "pos": [
+        21.336965187936904,
+        561.6767012563741
+      ],
+      "size": [
+        308.12265625,
+        154
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "pipeline",
+          "name": "pipeline",
+          "type": "YUE2_PIPE",
+          "link": 15
+        },
+        {
+          "localized_name": "adapter",
+          "name": "adapter",
+          "type": "COMBO",
+          "widget": {
+            "name": "adapter"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "ar_strength",
+          "name": "ar_strength",
+          "type": "FLOAT",
+          "widget": {
+            "name": "ar_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "nar_strength",
+          "name": "nar_strength",
+          "type": "FLOAT",
+          "widget": {
+            "name": "nar_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "enabled",
+          "name": "enabled",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "enabled"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "pipeline",
+          "name": "pipeline",
+          "type": "YUE2_PIPE",
+          "links": [
+            16,
+            17
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "a547d60115e22b7c3d114210cd019b4918b4cb6d",
+        "Node name for S&R": "YuE2UniversalAdapterLoader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "none",
+        1,
+        1,
+        true
+      ],
+      "widgets_values_named": {
+        "ar_lora": "none",
+        "ar_strength": 1,
+        "nar_strength": 1,
+        "auto_load_paired_nar": true,
+        "nar_lora_override": "none"
+      },
+      "color": "#232",
+      "bgcolor": "#353"
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      3,
+      "INT"
+    ],
+    [
+      3,
+      5,
+      0,
+      27,
+      2,
+      "YUE2_SAMPLING"
+    ],
+    [
+      6,
+      3,
+      0,
+      27,
+      3,
+      "STRING"
+    ],
+    [
+      15,
+      2,
+      0,
+      33,
+      0,
+      "YUE2_PIPE"
+    ],
+    [
+      16,
+      33,
+      0,
+      25,
+      0,
+      "YUE2_PIPE"
+    ],
+    [
+      17,
+      33,
+      0,
+      27,
+      0,
+      "YUE2_PIPE"
+    ],
+    [
+      4,
+      27,
+      0,
+      29,
+      0,
+      "AUDIO"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "TEXT TO SONG ? no reference audio required",
+      "bounding": [
+        0,
+        0,
+        1342.266534042358,
+        1078.4557329788204
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "Optional prompt and lyrics helpers",
+      "bounding": [
+        18.155862490252794,
+        1115.1711974943182,
+        791.6026893615722,
+        476.0673816070555
+      ],
+      "color": "#82508f",
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.5464107642920575,
+      "offset": [
+        641.5696630698129,
+        365.94796257342813
+      ]
+    },
+    "frontendVersion": "1.51.10",
+    "ue_links": [],
+    "anomalous_hashes": {},
+    "links_added_by_ue": []
+  },
+  "version": 0.4
+}

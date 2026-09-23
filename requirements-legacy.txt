@@ -1,0 +1,16 @@
+# Optional dependencies for the legacy Hugging Face runtime only.
+#
+# Native ComfyUI YuE2 workflows do not need this file. Never pip-install the
+# upstream yue2_infer wheel: the legacy loader imports that wheel in isolation.
+tiktoken>=0.12
+huggingface-hub
+safetensors
+accelerate
+soundfile
+scipy
+mir_eval>=0.8.2
+pretty_midi>=0.2.10
+mido>=1.3.3
+
+# Do not add descript-audiotools. It belongs to the older YuE stack and can
+# force a destructive Protobuf downgrade in a modern ComfyUI environment.
