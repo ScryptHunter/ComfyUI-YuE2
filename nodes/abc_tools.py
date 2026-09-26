@@ -27,7 +27,8 @@ def _key_parts(value):
     if not m: return "C", "", False
     root = m.group(1).upper() + m.group(2)
     suffix = m.group(3)
-    minor = suffix.strip().lower().startswith("m") and not suffix.strip().lower().startswith("mix")
+    mode = suffix.strip().split()[0].lower() if suffix.strip() else ""
+    minor = mode in {"m", "min", "minor"}
     return root, suffix, minor
 
 
@@ -272,15 +273,44 @@ def analyze_abc(text):
         voice_measure_totals[current_voice]=voice_measure_totals.get(current_voice,0.0)+whole_notes/max(meter_length,1e-9)
 
     def add_music_duration(music, current_voice):
-        # Quoted chord symbols, comments, decorations, and bracketed inline fields
-        # do not contribute note events. Inline V fields are handled by the caller.
+        # Quoted chord symbols, comments, and decorations are not note events.
+        # Inline fields are handled by the caller; bracketed note chords are
+        # simultaneous events and must not be discarded with those fields.
         music=re.sub(r'"[^"\\]*(?:\\.[^"\\]*)*"'," ",music)
         music=re.sub(r"%.*$","",music)
         music=re.sub(r"![^!]*!|\+[^+]*\+"," ",music)
-        music=re.sub(r"\[[^\]]*\]"," ",music)
         i=0
         while i < len(music):
             char=music[i]
+            if char == "[":
+                if music.startswith("[|",i):
+                    i += 2; continue
+                ending=re.match(r"\[\d+(?:[-,]\d+)*",music[i:])
+                if ending:
+                    i += len(ending.group(0)); continue  # numbered repeat ending
+                end=music.find("]",i+1)
+                if end < 0:
+                    raise ValueError("Unclosed ABC bracket chord in duration calculation")
+                body=music[i+1:end]
+                if re.match(r"[A-Za-z]:",body):
+                    i=end+1; continue
+                lengths=[]; pos=0
+                while pos < len(body):
+                    if body[pos].isspace():
+                        pos += 1; continue
+                    note=NOTE_RE.match(body,pos)
+                    if note is None:
+                        raise ValueError(f"Unsupported ABC bracket chord in duration calculation: [{body}]")
+                    lengths.append(length_multiplier(note.group("dur") or ""))
+                    pos=note.end()
+                if not lengths:
+                    raise ValueError("Empty ABC bracket chord in duration calculation")
+                suffix_match=re.match(r"(\d*(?:/\d+|/+)?)",music[end+1:])
+                suffix=suffix_match.group(1)
+                # Unequal inner lengths are conservatively timed by the longest
+                # note so the generation ceiling is not underestimated.
+                add_duration(current_voice,default_length*max(lengths)*length_multiplier(suffix))
+                i=end+1+len(suffix); continue
             if char == "Z":
                 match=re.match(r"Z(\d*)",music[i:])
                 count=int(match.group(1) or "1")
@@ -570,8 +600,8 @@ class VocalRangeRetarget:
         pitches=[p for v,_s,p in score_notes(abc) if "vocal" in v.lower()]
         if not pitches: raise ValueError("No Vocal voice was found in the ABC score")
         pitches.sort(); median=pitches[len(pitches)//2]
-        if target_voice=="original": shift=0
-        elif mode=="manual": shift=int(manual_semitones)
+        if mode=="manual": shift=int(manual_semitones)
+        elif target_voice=="original": shift=0
         else:
             lo,hi=self.RANGES[target_voice]; center=(lo+hi)/2
             candidates=(-36,-24,-12,0,12,24,36)
@@ -589,12 +619,13 @@ class VocalRangeRetarget:
                     -coverage(candidate)[0],coverage(candidate)[1],
                     coverage(candidate)[2],coverage(candidate)[3]))
             else:
-                # nearest_octave prioritizes placing the median near range center,
-                # but refuses any shift that reduces in-range note coverage.
-                preferred=min(candidates,key=lambda candidate:(
+                # Choose the best centering shift among candidates that do not
+                # reduce in-range coverage; zero is always a safe fallback.
+                safe=(candidate for candidate in candidates
+                      if coverage(candidate)[0] >= baseline[0])
+                shift=min(safe,key=lambda candidate:(
                     coverage(candidate)[3],coverage(candidate)[1],
                     coverage(candidate)[2]))
-                shift=preferred if coverage(preferred)[0] >= baseline[0] else 0
         out,mod_report=ABCModifier().modify(abc,"keep",120,1,"none",0,False,"",
                                              vocal_transpose=shift)
         result_pitches=[pitch+shift for pitch in pitches]

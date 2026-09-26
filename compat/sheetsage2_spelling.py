@@ -11,8 +11,11 @@ import re
 from collections.abc import Callable
 
 
-_KEY_RE = re.compile(r"^\s*(?P<root>[A-G][#b]?)(?P<minor>m)?(?:\s|$)")
-_KEY_LINE_RE = re.compile(r"^\s*K\s*:\s*(.*)$")
+_KEY_VALUE_RE = re.compile(
+    r"^(?P<before>\s*)(?P<root>[A-G][#b]?)(?P<mode>major|maj|minor|min|m)?"
+    r"(?P<after>(?:\s.*|%.*)?)$", re.IGNORECASE,
+)
+_KEY_LINE_RE = re.compile(r"^(?P<prefix>\s*K\s*:\s*)(?P<value>.*)$")
 _CHORD_ROOT_RE = re.compile(r"^(?P<root>[A-G](?:#{1,2}|b{1,2})?)(?P<body>.*)$")
 
 # Inverse of SheetSage2's ABC serialization vocabulary. Unknown qualities are
@@ -36,22 +39,38 @@ _ABC_QUALITY_TO_LABEL = {
 }
 
 
-def _load_core_corrector() -> Callable[[str, str], str] | None:
+def _load_core_helpers() -> tuple[Callable[[str, str], str], Callable[[str], str]] | None:
     try:
-        from comfy.audio_encoders.sheetsage2_abc import correct_chord_spelling
+        from comfy.audio_encoders.sheetsage2_abc import correct_chord_spelling, normalize_key_name
     except (ImportError, AttributeError):
-        # Older ComfyUI cores do not expose the key-aware helper. Keep their
-        # legacy output unchanged rather than silently vendoring a fork.
+        # Both helpers are required for consistent key and chord spelling.
+        # Older cores leave the legacy ABC unchanged.
         return None
-    return correct_chord_spelling
+    return correct_chord_spelling, normalize_key_name
 
 
-def _parse_abc_key(value: str) -> str | None:
-    match = _KEY_RE.match(value)
+def _normalize_abc_key(value: str, normalizer: Callable[[str], str]) -> tuple[str, str | None]:
+    match = _KEY_VALUE_RE.fullmatch(value)
     if match is None:
-        return None
-    mode = "minor" if match.group("minor") else "major"
-    return f"{match.group('root')}:{mode}"
+        return value, None
+    trailing = match.group("after").lstrip()
+    if trailing and not trailing.startswith("%") and re.match(r"[A-Za-z]+(?:\s|$)", trailing):
+        # A separated mode name is not a key-field attribute such as clef=.
+        return value, None
+    alias = (match.group("mode") or "").lower()
+    mode = "minor" if alias in {"m", "min", "minor"} else "major"
+    source_root = match.group("root")
+    source_root = source_root[0].upper() + source_root[1:].lower()
+    try:
+        normalized = normalizer(f"{source_root}:{mode}")
+        root, normalized_mode = normalized.split(":", 1)
+    except (ValueError, KeyError, TypeError):
+        return value, None
+    if normalized_mode != mode or not re.fullmatch(r"[A-G](?:#|b)?", root):
+        return value, None
+    rewritten = (match.group("before") + root + (match.group("mode") or "")
+                 + match.group("after"))
+    return rewritten, normalized
 
 
 def _rewrite_chord(text: str, key: str | None,
@@ -90,7 +109,8 @@ def _rewrite_chord(text: str, key: str | None,
 
 
 def _rewrite_line(line: str, key: str | None,
-                  corrector: Callable[[str, str], str]) -> tuple[str, str | None]:
+                  corrector: Callable[[str, str], str],
+                  normalizer: Callable[[str], str]) -> tuple[str, str | None]:
     out: list[str] = []
     i = 0
     while i < len(line):
@@ -102,11 +122,8 @@ def _rewrite_line(line: str, key: str | None,
             if end < 0:
                 out.append(line[i:])
                 break
-            field = line[i:end + 1]
-            parsed = _parse_abc_key(line[i + 3:end])
-            out.append(field)
-            if parsed is not None:
-                key = parsed
+            value, key = _normalize_abc_key(line[i + 3:end], normalizer)
+            out.append("[K:" + value + "]")
             i = end + 1
             continue
         if line[i] == '"':
@@ -128,8 +145,9 @@ def correct_abc_chord_spellings(
     abc_text: str,
     *,
     corrector: Callable[[str, str], str] | None = None,
+    normalizer: Callable[[str], str] | None = None,
 ) -> str:
-    """Correct quoted chord roots relative to active ABC keys.
+    """Canonicalize keys and correct quoted chord roots relative to them.
 
     Notes, durations, barlines, slash-bass text, quality suffixes, comments,
     and line endings are preserved. Inline ``[K:...]`` changes take effect
@@ -137,9 +155,12 @@ def correct_abc_chord_spellings(
     """
     if not abc_text:
         return abc_text
-    corrector = corrector or _load_core_corrector()
-    if corrector is None:
-        return abc_text
+    if corrector is None or normalizer is None:
+        helpers = _load_core_helpers()
+        if helpers is None:
+            return abc_text
+        corrector = corrector or helpers[0]
+        normalizer = normalizer or helpers[1]
 
     current_key = None
     output: list[str] = []
@@ -148,9 +169,8 @@ def correct_abc_chord_spellings(
         newline = line[len(content):]
         key_line = _KEY_LINE_RE.match(content)
         if key_line:
-            parsed = _parse_abc_key(key_line.group(1))
-            if parsed is not None:
-                current_key = parsed
-        rewritten, current_key = _rewrite_line(content, current_key, corrector)
+            value, current_key = _normalize_abc_key(key_line.group("value"), normalizer)
+            content = key_line.group("prefix") + value
+        rewritten, current_key = _rewrite_line(content, current_key, corrector, normalizer)
         output.append(rewritten + newline)
     return "".join(output)

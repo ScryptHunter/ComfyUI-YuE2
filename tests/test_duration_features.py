@@ -4,6 +4,8 @@ import sys
 import types
 from unittest.mock import patch
 
+import pytest
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -101,6 +103,42 @@ def test_duration_budget_clamps_to_backend_ranges_and_legacy_minimum():
     assert native == 900.0
     assert legacy == 16384
     assert "WARNING:" in report
+
+
+def test_duration_budget_counts_bracket_chord_as_one_event():
+    abc_tools = load_abc_tools()
+    header = "M:4/4\nL:1/4\nQ:1/4=120\nK:C\n"
+    score, native, legacy, _ = abc_tools.calculate_duration_budget(header + "[CEG]4|\n")
+    assert score == pytest.approx(2.0)
+    assert native == pytest.approx(4.2)
+    assert legacy == 200  # Legacy's configured minimum is higher than 4.2s * 25.
+
+    for body, expected in (("[CEG]2 [DFA]2|", 2.0),
+                           ("[C2E2G2]|", 1.0), ("[C2E4G]|", 2.0)):
+        duration = abc_tools.analyze_abc(header + body + "\n")[3]
+        assert duration == pytest.approx(expected)
+
+
+def test_duration_budget_distinguishes_inline_fields_from_note_chords():
+    abc_tools = load_abc_tools()
+    score = ("M:4/4\nL:1/4\nQ:1/4=120\nK:C\n"
+             "[K:G][M:4/4][L:1/4][Q:1/4=120][V:Vocal][CEG]4|\n")
+    assert abc_tools.analyze_abc(score)[3] == pytest.approx(2.0)
+
+
+@pytest.mark.parametrize("ending", ("[1", "[2", "[12", "[1,3"))
+def test_duration_budget_counts_chord_after_numbered_repeat_ending(ending):
+    abc_tools = load_abc_tools()
+    score = ("M:4/4\nL:1/4\nQ:1/4=120\nK:C\n"
+             f"{ending} C D | [CEG]2|\n")
+    assert abc_tools.analyze_abc(score)[3] == pytest.approx(2.0)
+
+
+def test_duration_budget_rejects_unsupported_bracket_chord_instead_of_undercounting():
+    abc_tools = load_abc_tools()
+    score = "M:4/4\nL:1/4\nQ:1/4=120\nK:C\n[C~EG]4|\n"
+    with pytest.raises(ValueError, match="Unsupported ABC bracket chord"):
+        abc_tools.calculate_duration_budget(score)
 
 
 def test_sampling_settings_override_only_semantic_max_tokens():

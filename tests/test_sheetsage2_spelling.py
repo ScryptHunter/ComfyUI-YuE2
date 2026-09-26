@@ -5,7 +5,9 @@ import importlib.util
 import os
 import re
 import sys
+import types
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 
@@ -34,6 +36,9 @@ def sheetsage2_core():
     module = _load_installed_core()
     if module is None:
         pytest.skip("Set COMFYUI_ROOT to validate the installed ComfyUI SheetSage2 helper")
+    if not all(callable(getattr(module, name, None)) for name in
+               ("normalize_key_name", "correct_chord_spelling")):
+        pytest.skip("Installed ComfyUI does not expose both SheetSage2 spelling helpers")
     return module
 
 
@@ -86,7 +91,8 @@ def test_legacy_abc_adapter_uses_header_and_inline_key_without_touching_timeline
         '"D#7/E" C2|[K:E]"D#" D2| % "D#" in comment\r\n'
     )
     corrected = correct_abc_chord_spellings(
-        source, corrector=sheetsage2_core.correct_chord_spelling
+        source, corrector=sheetsage2_core.correct_chord_spelling,
+        normalizer=sheetsage2_core.normalize_key_name,
     )
 
     assert corrected == (
@@ -103,13 +109,90 @@ def test_legacy_abc_adapter_uses_header_and_inline_key_without_touching_timeline
 def test_legacy_abc_adapter_preserves_unsupported_chords_and_no_key_scores(sheetsage2_core):
     source = '"A#unsupported" C|\nK:G\n"A#" D|\n'
     assert correct_abc_chord_spellings(
-        source, corrector=sheetsage2_core.correct_chord_spelling
+        source, corrector=sheetsage2_core.correct_chord_spelling,
+        normalizer=sheetsage2_core.normalize_key_name,
     ) == '"A#unsupported" C|\nK:G\n"Bb" D|\n'
 
 
-def test_abc_adapter_is_a_noop_if_core_corrector_is_unavailable(monkeypatch):
+def test_header_and_inline_keys_are_canonicalized_without_changing_timing_or_crlf():
+    normalizer = Mock(side_effect=lambda key: {"D#:major": "Eb:major"}.get(key, key))
+    corrector = Mock(side_effect=lambda chord, key: "Eb:maj" if (
+        chord == "D#:maj" and key == "Eb:major"
+    ) else chord)
+    source = ('X:1\r\nK:  D#  % original key\r\nV:Vocal\r\n'
+              '"D#" C2|[K: D# ]"D#" D2| % "D#" in comment\r\n')
+    expected = ('X:1\r\nK:  Eb  % original key\r\nV:Vocal\r\n'
+                '"Eb" C2|[K: Eb ]"Eb" D2| % "D#" in comment\r\n')
+    assert correct_abc_chord_spellings(
+        source, corrector=corrector, normalizer=normalizer,
+    ) == expected
+    assert normalizer.call_count == 2
+    assert all(call.args == ("D#:major",) for call in normalizer.call_args_list)
+    assert all(call.args == ("D#:maj", "Eb:major") for call in corrector.call_args_list)
+    assert corrector.call_count == 2
+
+
+@pytest.mark.parametrize("label,mode", [
+    ("A", "major"), ("Amaj", "major"), ("Amajor", "major"),
+    ("Am", "minor"), ("Amin", "minor"), ("Aminor", "minor"),
+])
+def test_common_abc_key_aliases_use_the_correct_core_mode(label, mode):
+    normalizer = Mock(side_effect=lambda key: key)
+    corrector = Mock(side_effect=lambda chord, key: chord)
+    source = f'K:{label}\n"C" C|\n'
+    assert correct_abc_chord_spellings(
+        source, corrector=corrector, normalizer=normalizer,
+    ) == source
+    normalizer.assert_called_once_with(f"A:{mode}")
+    corrector.assert_called_once_with("C:maj", f"A:{mode}")
+
+
+def test_flat_key_root_is_passed_to_core_with_its_accidental_intact():
+    normalizer = Mock(side_effect=lambda key: key)
+    corrector = Mock(side_effect=lambda chord, key: chord)
+    source = 'K:Bb\n"C" C|\n'
+    assert correct_abc_chord_spellings(
+        source, corrector=corrector, normalizer=normalizer,
+    ) == source
+    normalizer.assert_called_once_with("Bb:major")
+    corrector.assert_called_once_with("C:maj", "Bb:major")
+
+
+def test_inline_key_change_updates_the_key_used_for_following_chords():
+    normalizer = Mock(side_effect=lambda key: {"D#:major": "Eb:major"}.get(key, key))
+    corrector = Mock(side_effect=lambda chord, key: "Eb:maj" if key == "Eb:major" else chord)
+    source = 'K:A\n"D#" C|[K:D#]"D#" D|\n'
+    expected = 'K:A\n"D#" C|[K:Eb]"Eb" D|\n'
+    assert correct_abc_chord_spellings(
+        source, corrector=corrector, normalizer=normalizer,
+    ) == expected
+    assert [call.args[1] for call in corrector.call_args_list] == ["A:major", "Eb:major"]
+
+
+def test_unsupported_modal_key_does_not_reuse_the_previous_key():
+    normalizer = Mock(side_effect=lambda key: key)
+    corrector = Mock(side_effect=lambda chord, key: chord)
+    source = 'K:A\n"C"|[K:Ddor]"D#"|[K:Emix]"D#"|\nK:F lyd\n"D#"|\n'
+    assert correct_abc_chord_spellings(
+        source, corrector=corrector, normalizer=normalizer,
+    ) == source
+    normalizer.assert_called_once_with("A:major")
+    corrector.assert_called_once_with("C:maj", "A:major")
+
+
+@pytest.mark.parametrize("available", ["correct_chord_spelling", "normalize_key_name"])
+def test_abc_adapter_is_a_noop_if_a_core_helper_is_unavailable(monkeypatch, available):
     import compat.sheetsage2_spelling as spelling
 
-    source = 'K:G\n"A#" C|\n'
-    monkeypatch.setattr(spelling, "_load_core_corrector", lambda: None)
+    comfy = types.ModuleType("comfy")
+    comfy.__path__ = []
+    audio_encoders = types.ModuleType("comfy.audio_encoders")
+    audio_encoders.__path__ = []
+    old_core = types.ModuleType("comfy.audio_encoders.sheetsage2_abc")
+    setattr(old_core, available, lambda *args: args[0])
+    monkeypatch.setitem(sys.modules, "comfy", comfy)
+    monkeypatch.setitem(sys.modules, "comfy.audio_encoders", audio_encoders)
+    monkeypatch.setitem(sys.modules, "comfy.audio_encoders.sheetsage2_abc", old_core)
+    source = 'K:D#\n"A#" C|\n'
+    assert spelling._load_core_helpers() is None
     assert spelling.correct_abc_chord_spellings(source) == source

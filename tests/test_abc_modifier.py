@@ -251,6 +251,47 @@ class ABCModifierTests(unittest.TestCase):
         )
         self.assertEqual(shift, 0)
 
+    def test_manual_shift_takes_priority_over_original_target(self):
+        abc = "K:C\nV:Vocal\nC D E|\n"
+        before = [pitch for _, _, pitch in self.mod.score_notes(abc)]
+        for requested in (5, -7):
+            with self.subTest(requested=requested):
+                output, shift, _ = self.mod.VocalRangeRetarget().retarget(
+                    abc, "original", "manual", requested,
+                )
+                self.assertEqual(shift, requested)
+                after = [pitch for _, _, pitch in self.mod.score_notes(output)]
+                self.assertEqual([pitch - old for pitch, old in zip(after, before)],
+                                 [requested] * len(before))
+
+    def test_original_target_keeps_automatic_mode_unshifted(self):
+        abc = "K:C\nV:Vocal\nC D E|\n"
+        output, shift, _ = self.mod.VocalRangeRetarget().retarget(
+            abc, "original", "nearest_key_safe", 12,
+        )
+        self.assertEqual(shift, 0)
+        self.assertEqual(output, abc)
+
+    def test_manual_vocal_shift_is_independent_of_whole_score_transpose(self):
+        abc = "K:C\nV:Vocal\nC D|\nV:Ins\nE F|\n"
+        vocal_shifted, shift, _ = self.mod.VocalRangeRetarget().retarget(
+            abc, "original", "manual", 5,
+        )
+        self.assertEqual(shift, 5)
+        final, _ = self.mod.ABCModifier().modify(
+            vocal_shifted, "keep", 120, 1, "whole_score", 2, False, "",
+        )
+        before = self.mod.score_notes(abc)
+        after = self.mod.score_notes(final)
+        self.assertEqual([(new[0], new[2] - old[2]) for old, new in zip(before, after)],
+                         [("Vocal", 7), ("Vocal", 7), ("Ins", 2), ("Ins", 2)])
+
+    def test_major_and_minor_key_aliases_have_distinct_signatures(self):
+        self.assertEqual(self.mod._key_accidentals("Amajor")["F"], 1)
+        self.assertEqual(self.mod._key_accidentals("Amaj")["F"], 1)
+        self.assertEqual(self.mod._key_accidentals("Amin")["F"], 0)
+        self.assertEqual(self.mod._key_accidentals("Aminor")["F"], 0)
+
     def test_vocal_range_retarget_moves_octave_below_melody_up(self):
         abc = "K:C\nV:Vocal\nC, D, E, F, G, A,|\n"
         _, shift, _ = self.mod.VocalRangeRetarget().retarget(
@@ -292,6 +333,17 @@ class ABCModifierTests(unittest.TestCase):
             abc, "female_soprano", "nearest_octave", 0,
         )
         self.assertEqual(shift, 0)
+
+    def test_nearest_octave_chooses_second_safe_centering_candidate(self):
+        abc = "K:C\nV:Vocal\nC,, C,, ^F, ^f ^f|\n"
+        before = [pitch for voice, _, pitch in self.mod.score_notes(abc) if voice == "Vocal"]
+        self.assertEqual(before, [36, 36, 54, 78, 78])
+        output, shift, _ = self.mod.VocalRangeRetarget().retarget(
+            abc, "female_soprano", "nearest_octave", 0,
+        )
+        self.assertEqual(shift, 24)
+        after = [pitch for voice, _, pitch in self.mod.score_notes(output) if voice == "Vocal"]
+        self.assertEqual(after, [pitch + 24 for pitch in before])
 
     def test_vocal_range_report_clarifies_pitch_range_is_not_gender_or_timbre(self):
         abc = "K:C\nV:Vocal\nC D E|\n"
