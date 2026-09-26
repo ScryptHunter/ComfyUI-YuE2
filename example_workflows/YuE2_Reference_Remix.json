@@ -1,8 +1,8 @@
 {
-  "id": "ac3c8be0-6750-4da6-9ffd-3ded901b3217",
+  "id": "a022490c-0d75-4937-9db8-69512639a419",
   "revision": 0,
-  "last_node_id": 30,
-  "last_link_id": 21,
+  "last_node_id": 32,
+  "last_link_id": 27,
   "nodes": [
     {
       "id": 2,
@@ -16,7 +16,7 @@
         226
       ],
       "flags": {},
-      "order": 5,
+      "order": 4,
       "mode": 0,
       "inputs": [
         {
@@ -62,7 +62,7 @@
           "widget": {
             "name": "offload_ar"
           },
-          "link": null
+          "link": 26
         },
         {
           "localized_name": "offline",
@@ -145,7 +145,7 @@
         170
       ],
       "flags": {},
-      "order": 11,
+      "order": 10,
       "mode": 4,
       "inputs": [
         {
@@ -198,15 +198,15 @@
       "id": 25,
       "type": "YuE2Unload",
       "pos": [
-        1279.0000915527344,
-        1044.0000915527344
+        1298.3002906220695,
+        1101.6767988355962
       ],
       "size": [
-        270,
-        110
+        255.040625,
+        111.09989929199219
       ],
       "flags": {},
-      "order": 14,
+      "order": 13,
       "mode": 4,
       "inputs": [
         {
@@ -240,7 +240,7 @@
         110
       ],
       "flags": {},
-      "order": 7,
+      "order": 6,
       "mode": 4,
       "inputs": [
         {
@@ -281,7 +281,7 @@
         160
       ],
       "flags": {},
-      "order": 13,
+      "order": 12,
       "mode": 4,
       "inputs": [
         {
@@ -337,7 +337,7 @@
         440
       ],
       "flags": {},
-      "order": 10,
+      "order": 9,
       "mode": 0,
       "inputs": [
         {
@@ -509,7 +509,7 @@
         250
       ],
       "flags": {},
-      "order": 16,
+      "order": 15,
       "mode": 0,
       "inputs": [
         {
@@ -565,7 +565,8 @@
           "type": "STRING",
           "links": [
             7,
-            8
+            8,
+            22
           ]
         },
         {
@@ -575,7 +576,7 @@
           "links": []
         }
       ],
-      "title": "YuE2 Melody Cleanup ⏱ 0.0s",
+      "title": "YuE2 Melody Cleanup ⏱ 5.6s",
       "properties": {
         "aux_id": "ScryptHunter/ComfyUI-YuE2",
         "ver": "fd0d9e588decacde9a5e4c547035d900f3ae5113",
@@ -613,7 +614,7 @@
         220
       ],
       "flags": {},
-      "order": 18,
+      "order": 16,
       "mode": 0,
       "inputs": [
         {
@@ -737,7 +738,7 @@
         313.0000305175781
       ],
       "flags": {},
-      "order": 12,
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
@@ -848,7 +849,7 @@
         148
       ],
       "flags": {},
-      "order": 9,
+      "order": 8,
       "mode": 0,
       "inputs": [
         {
@@ -916,7 +917,7 @@
         230
       ],
       "flags": {},
-      "order": 15,
+      "order": 14,
       "mode": 0,
       "inputs": [
         {
@@ -1008,15 +1009,15 @@
       "id": 29,
       "type": "SaveAudioAdvanced",
       "pos": [
-        1281.0975022552807,
-        827.5073197530673
+        1291.3435811347592,
+        839.2788033351394
       ],
       "size": [
         262.6702007205429,
         163.88073473734755
       ],
       "flags": {},
-      "order": 19,
+      "order": 21,
       "mode": 0,
       "inputs": [
         {
@@ -1067,7 +1068,7 @@
           "localized_name": "audio",
           "name": "audio",
           "type": "AUDIO",
-          "links": null
+          "links": []
         }
       ],
       "title": "Save Audio (Advanced) ⏱ 2.4s",
@@ -1172,15 +1173,15 @@
       "id": 27,
       "type": "YuE2Sampler",
       "pos": [
-        824.5167812372061,
-        843.6743606073564
+        845.6065775073326,
+        822.2385022424196
       ],
       "size": [
         430,
         650
       ],
       "flags": {},
-      "order": 17,
+      "order": 20,
       "mode": 0,
       "inputs": [
         {
@@ -1327,7 +1328,7 @@
           "widget": {
             "name": "vae_tile_frames"
           },
-          "link": null
+          "link": 27
         },
         {
           "localized_name": "abort_after_plan",
@@ -1398,7 +1399,7 @@
         false,
         true,
         "auto",
-        false,
+        0,
         false,
         false
       ],
@@ -1417,7 +1418,7 @@
         "save_flac": false,
         "save_abc": true,
         "vae_decode": "auto",
-        "vae_tile_frames": false,
+        "vae_tile_frames": 0,
         "abort_after_plan": false,
         "save_artifacts": false
       },
@@ -1462,7 +1463,9 @@
           "localized_name": "offload_ar",
           "name": "offload_ar",
           "type": "BOOLEAN",
-          "links": []
+          "links": [
+            26
+          ]
         },
         {
           "localized_name": "vae_decode",
@@ -1474,7 +1477,9 @@
           "localized_name": "vae_tile_frames",
           "name": "vae_tile_frames",
           "type": "INT",
-          "links": []
+          "links": [
+            27
+          ]
         }
       ],
       "title": "Optional GPU Memory Preset",
@@ -1492,24 +1497,32 @@
         "48 GB"
       ],
       "widgets_values_named": {
-        "vram": "48 GB"
+        "vram": "48 GB",
+        "offload_ar": false
       }
     },
     {
       "id": 5,
       "type": "YuE2SamplingSettings",
       "pos": [
-        456.2276292510001,
-        850.7723878649821
+        383.0353206451384,
+        846.3364593185372
       ],
       "size": [
-        401.90390625,
-        520
+        414.00397338867185,
+        426.5000000000002
       ],
       "flags": {},
-      "order": 3,
+      "order": 18,
       "mode": 0,
       "inputs": [
+        {
+          "localized_name": "semantic_max_tokens_override",
+          "name": "semantic_max_tokens_override",
+          "shape": 7,
+          "type": "INT",
+          "link": 23
+        },
         {
           "localized_name": "preset",
           "name": "preset",
@@ -1722,7 +1735,7 @@
         380
       ],
       "flags": {},
-      "order": 6,
+      "order": 5,
       "mode": 0,
       "inputs": [
         {
@@ -1891,7 +1904,7 @@
         170
       ],
       "flags": {},
-      "order": 4,
+      "order": 3,
       "mode": 0,
       "inputs": [
         {
@@ -1982,15 +1995,15 @@
       "id": 30,
       "type": "YuE2UniversalAdapterLoader",
       "pos": [
-        40.78901201525015,
-        1339.663612933392
+        35.242890078631326,
+        1348.4714887437726
       ],
       "size": [
-        308.12265625,
-        154
+        409.5259765625,
+        157.8973747298735
       ],
       "flags": {},
-      "order": 8,
+      "order": 7,
       "mode": 0,
       "inputs": [
         {
@@ -2064,14 +2077,145 @@
         true
       ],
       "widgets_values_named": {
-        "ar_lora": "none",
+        "adapter": "none",
         "ar_strength": 1,
         "nar_strength": 1,
-        "auto_load_paired_nar": true,
-        "nar_lora_override": "none"
+        "enabled": true
       },
       "color": "#232",
       "bgcolor": "#353"
+    },
+    {
+      "id": 31,
+      "type": "YuE2ABCDurationBudget",
+      "pos": [
+        498.0030075905057,
+        1355.1402718716092
+      ],
+      "size": [
+        298.07810974121094,
+        148.99996948242188
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "abc",
+          "name": "abc",
+          "type": "STRING",
+          "link": 22
+        },
+        {
+          "localized_name": "headroom_percent",
+          "name": "headroom_percent",
+          "type": "FLOAT",
+          "widget": {
+            "name": "headroom_percent"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "tail_seconds",
+          "name": "tail_seconds",
+          "type": "FLOAT",
+          "widget": {
+            "name": "tail_seconds"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "score_duration_seconds",
+          "name": "score_duration_seconds",
+          "type": "FLOAT",
+          "links": []
+        },
+        {
+          "localized_name": "native_max_duration",
+          "name": "native_max_duration",
+          "type": "FLOAT",
+          "links": []
+        },
+        {
+          "localized_name": "legacy_semantic_max_tokens",
+          "name": "legacy_semantic_max_tokens",
+          "type": "INT",
+          "links": [
+            23
+          ]
+        },
+        {
+          "localized_name": "report",
+          "name": "report",
+          "type": "STRING",
+          "links": [
+            25
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "a547d60115e22b7c3d114210cd019b4918b4cb6d",
+        "Node name for S&R": "YuE2ABCDurationBudget",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        10,
+        2
+      ],
+      "widgets_values_named": {
+        "headroom_percent": 10,
+        "tail_seconds": 2
+      }
+    },
+    {
+      "id": 32,
+      "type": "PreviewAny",
+      "pos": [
+        846.8238173037472,
+        1528.5892813727392
+      ],
+      "size": [
+        668.0000305175774,
+        122
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "source",
+          "name": "source",
+          "type": "*",
+          "link": 25
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.37.0",
+        "Node name for S&R": "PreviewAny",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
     }
   ],
   "links": [
@@ -2220,12 +2364,52 @@
       "YUE2_PIPE"
     ],
     [
+      22,
+      10,
+      0,
+      31,
+      0,
+      "STRING"
+    ],
+    [
+      23,
+      31,
+      2,
+      5,
+      0,
+      "INT"
+    ],
+    [
+      25,
+      31,
+      3,
+      32,
+      0,
+      "STRING"
+    ],
+    [
       16,
       27,
       0,
       29,
       0,
       "AUDIO"
+    ],
+    [
+      26,
+      1,
+      1,
+      2,
+      4,
+      "BOOLEAN"
+    ],
+    [
+      27,
+      1,
+      3,
+      27,
+      16,
+      "INT"
     ]
   ],
   "groups": [
@@ -2235,8 +2419,8 @@
       "bounding": [
         2.0000457763671853,
         -9.99999999999999,
-        2290,
-        740
+        2312.626959381103,
+        728.0209796905517
       ],
       "color": "#3f8a5b",
       "flags": {}
@@ -2271,8 +2455,8 @@
     "ds": {
       "scale": 0.8000000000000022,
       "offset": [
-        476.6921510096504,
-        269.88094196772744
+        191.1761750668552,
+        -752.8393881842644
       ]
     },
     "frontendVersion": "1.51.10",

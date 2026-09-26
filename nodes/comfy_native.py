@@ -13,6 +13,28 @@ import folder_paths
 PIPE_TYPE = "YUE2_NATIVE_PIPE"
 
 
+def native_limit_diagnostic(conditioning, max_duration, frames_per_second):
+    """Prefer YuE2's explicit truncation metadata; retain a legacy frame fallback."""
+    try:
+        meta=conditioning[0][1]
+        generated_frames=int(meta["yue2_frames"])
+        frame_limit=max(1,round(float(max_duration)*float(frames_per_second)))
+    except (IndexError,KeyError,TypeError,ValueError,ZeroDivisionError):
+        return False,"Could not determine whether semantic generation reached max_duration."
+    explicit="yue2_truncated" in meta
+    limit_reached=bool(meta["yue2_truncated"]) if explicit else generated_frames >= frame_limit
+    generated_seconds=generated_frames/max(float(frames_per_second),1e-9)
+    info=(f"generated={generated_seconds:.1f}s requested_ceiling={float(max_duration):.1f}s "
+          f"limit_reached={limit_reached}")
+    if limit_reached:
+        info += " | WARNING: semantic generation reached its effective token budget; ending may be truncated"
+        if explicit and generated_frames < frame_limit*0.95:
+            info += " | effective budget may have been reduced by the YuE2 context limit"
+    else:
+        info += " | semantic generation ended below its effective token budget"
+    return limit_reached,info
+
+
 def _preferred(options, marker: str):
     """Keep every selectable file, but put likely YuE2 files first."""
     return sorted(options, key=lambda value: (marker not in value.lower(), value.lower()))
@@ -282,8 +304,8 @@ class YuE2NativeGenerateMusic:
             "repetition_penalty": ("FLOAT", {"default": 1.2, "min": 0.01, "max": 10.0, "step": 0.01}),
         }}
 
-    RETURN_TYPES = ("MODEL", "VAE", "CONDITIONING", "FLOAT")
-    RETURN_NAMES = ("model", "vae", "conditioning", "seconds")
+    RETURN_TYPES = ("MODEL", "VAE", "CONDITIONING", "FLOAT", "BOOLEAN", "STRING")
+    RETURN_NAMES = ("model", "vae", "conditioning", "seconds", "limit_reached", "info")
     FUNCTION = "generate"
     CATEGORY = "YuE2/Native ComfyUI"
 
@@ -310,7 +332,8 @@ class YuE2NativeGenerateMusic:
         )
         conditioning = clip.encode_from_tokens_scheduled(tokens)
         seconds = conditioning[0][1]["yue2_frames"] / FRAMES_PER_SECOND
-        return pipe["model"], pipe["vae"], conditioning, float(seconds)
+        limit_reached,info=native_limit_diagnostic(conditioning,max_duration,FRAMES_PER_SECOND)
+        return pipe["model"], pipe["vae"], conditioning, float(seconds), limit_reached, info
 
 
 class YuE2NativeAudioToABC:

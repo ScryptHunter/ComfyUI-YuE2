@@ -1,15 +1,15 @@
 {
   "id": "8d7a1e97-4e53-4df2-aa38-f716f4641fb9",
   "revision": 0,
-  "last_node_id": 5,
-  "last_link_id": 3,
+  "last_node_id": 13,
+  "last_link_id": 18,
   "nodes": [
     {
       "id": 1,
       "type": "YuE2Loader",
       "pos": [
-        0,
-        0
+        -90.18855999999985,
+        5.1536516595459
       ],
       "size": [
         340,
@@ -116,7 +116,7 @@
         "YuE2-3B",
         "YuE2-Vae",
         "cuda",
-        24,
+        48,
         false,
         true,
         "auto",
@@ -126,7 +126,7 @@
         "model": "YuE2-3B",
         "vae": "YuE2-Vae",
         "device": "cuda",
-        "memory_budget_gib": 24,
+        "memory_budget_gib": 48,
         "offload_ar": false,
         "offline": true,
         "attention_backend": "auto",
@@ -137,15 +137,15 @@
       "id": 2,
       "type": "YuE2UniversalAdapterLoader",
       "pos": [
-        400,
-        0
+        283.0070089477536,
+        -1.2884374893188484
       ],
       "size": [
-        340,
+        458.437109375,
         240
       ],
       "flags": {},
-      "order": 1,
+      "order": 3,
       "mode": 0,
       "inputs": [
         {
@@ -197,7 +197,8 @@
           "name": "pipeline",
           "type": "YUE2_PIPE",
           "links": [
-            2
+            2,
+            5
           ]
         }
       ],
@@ -218,11 +219,10 @@
         true
       ],
       "widgets_values_named": {
-        "ar_lora": "none",
+        "adapter": "none",
         "ar_strength": 1,
         "nar_strength": 1,
-        "auto_load_paired_nar": true,
-        "nar_lora_override": "none"
+        "enabled": true
       }
     },
     {
@@ -237,7 +237,7 @@
         650
       ],
       "flags": {},
-      "order": 2,
+      "order": 6,
       "mode": 0,
       "inputs": [
         {
@@ -251,7 +251,7 @@
           "name": "abc",
           "shape": 7,
           "type": "STRING",
-          "link": null
+          "link": 13
         },
         {
           "localized_name": "sampling_settings",
@@ -267,7 +267,7 @@
           "widget": {
             "name": "style"
           },
-          "link": null
+          "link": 9
         },
         {
           "localized_name": "lyrics",
@@ -276,7 +276,7 @@
           "widget": {
             "name": "lyrics"
           },
-          "link": null
+          "link": 11
         },
         {
           "localized_name": "cot",
@@ -285,7 +285,7 @@
           "widget": {
             "name": "cot"
           },
-          "link": null
+          "link": 18
         },
         {
           "localized_name": "seed",
@@ -294,7 +294,7 @@
           "widget": {
             "name": "seed"
           },
-          "link": null
+          "link": 15
         },
         {
           "localized_name": "cfg_scale",
@@ -330,7 +330,7 @@
           "widget": {
             "name": "semantic_max_tokens"
           },
-          "link": null
+          "link": 4
         },
         {
           "localized_name": "abc_temperature",
@@ -429,6 +429,7 @@
           "links": []
         }
       ],
+      "title": "YuE2 Song Generator (Legacy HF) ⏱ 1m38.7s",
       "properties": {
         "aux_id": "ScryptHunter/ComfyUI-YuE2",
         "ver": "a547d60115e22b7c3d114210cd019b4918b4cb6d",
@@ -441,7 +442,7 @@
       },
       "widgets_values": [
         "English witch house, ethereal female vocal, dark atmospheric synths, deep bass, 80 BPM",
-        "[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside",
+        "",
         "full",
         831001,
         "fixed",
@@ -454,13 +455,13 @@
         false,
         true,
         "tiled",
-        false,
+        0,
         false,
         false
       ],
       "widgets_values_named": {
         "style": "English witch house, ethereal female vocal, dark atmospheric synths, deep bass, 80 BPM",
-        "lyrics": "[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside",
+        "lyrics": "",
         "cot": "full",
         "seed": 831001,
         "control_after_generate": "fixed",
@@ -473,7 +474,7 @@
         "save_flac": false,
         "save_abc": true,
         "vae_decode": "tiled",
-        "vae_tile_frames": false,
+        "vae_tile_frames": 0,
         "abort_after_plan": false,
         "save_artifacts": false
       }
@@ -490,7 +491,7 @@
         160
       ],
       "flags": {},
-      "order": 3,
+      "order": 8,
       "mode": 0,
       "inputs": [
         {
@@ -544,6 +545,7 @@
           "links": []
         }
       ],
+      "title": "Save Audio (Advanced) ⏱ 5.6s",
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.37.0",
@@ -564,6 +566,477 @@
         "format": "mp3",
         "format.quality": "V0"
       }
+    },
+    {
+      "id": 6,
+      "type": "YuE2ABCDurationBudget",
+      "pos": [
+        394.2275797526045,
+        476.52519389851903
+      ],
+      "size": [
+        292.078125,
+        142
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "abc",
+          "name": "abc",
+          "type": "STRING",
+          "link": 6
+        },
+        {
+          "localized_name": "headroom_percent",
+          "name": "headroom_percent",
+          "type": "FLOAT",
+          "widget": {
+            "name": "headroom_percent"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "tail_seconds",
+          "name": "tail_seconds",
+          "type": "FLOAT",
+          "widget": {
+            "name": "tail_seconds"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "score_duration_seconds",
+          "name": "score_duration_seconds",
+          "type": "FLOAT",
+          "links": []
+        },
+        {
+          "localized_name": "native_max_duration",
+          "name": "native_max_duration",
+          "type": "FLOAT",
+          "links": []
+        },
+        {
+          "localized_name": "legacy_semantic_max_tokens",
+          "name": "legacy_semantic_max_tokens",
+          "type": "INT",
+          "links": [
+            4
+          ]
+        },
+        {
+          "localized_name": "report",
+          "name": "report",
+          "type": "STRING",
+          "links": [
+            12
+          ]
+        }
+      ],
+      "title": "YuE2 ABC Duration Budget ⏱ 0.0s",
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "a547d60115e22b7c3d114210cd019b4918b4cb6d",
+        "Node name for S&R": "YuE2ABCDurationBudget",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        10,
+        2
+      ],
+      "widgets_values_named": {
+        "headroom_percent": 10,
+        "tail_seconds": 2
+      },
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 7,
+      "type": "YuE2Plan",
+      "pos": [
+        -32.872680664062486,
+        346.2667902166194
+      ],
+      "size": [
+        400,
+        278
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "pipeline",
+          "name": "pipeline",
+          "type": "YUE2_PIPE",
+          "link": 5
+        },
+        {
+          "localized_name": "abc",
+          "name": "abc",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "localized_name": "sampling_settings",
+          "name": "sampling_settings",
+          "shape": 7,
+          "type": "YUE2_SAMPLING",
+          "link": null
+        },
+        {
+          "localized_name": "style",
+          "name": "style",
+          "type": "STRING",
+          "widget": {
+            "name": "style"
+          },
+          "link": 8
+        },
+        {
+          "localized_name": "lyrics",
+          "name": "lyrics",
+          "type": "STRING",
+          "widget": {
+            "name": "lyrics"
+          },
+          "link": 10
+        },
+        {
+          "localized_name": "cot",
+          "name": "cot",
+          "type": "COMBO",
+          "widget": {
+            "name": "cot"
+          },
+          "link": 17
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": 14
+        },
+        {
+          "localized_name": "cfg_scale",
+          "name": "cfg_scale",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg_scale"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "plan",
+          "name": "plan",
+          "type": "YUE2_PLAN",
+          "links": []
+        },
+        {
+          "localized_name": "abc",
+          "name": "abc",
+          "type": "STRING",
+          "links": [
+            6,
+            13
+          ]
+        },
+        {
+          "localized_name": "info",
+          "name": "info",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "title": "YuE2 Generate Plan (Legacy HF) ⏱ 14.3s",
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "a547d60115e22b7c3d114210cd019b4918b4cb6d",
+        "Node name for S&R": "YuE2Plan",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "",
+        "",
+        "full",
+        831001,
+        "fixed",
+        -1
+      ],
+      "widgets_values_named": {
+        "style": "",
+        "lyrics": "",
+        "cot": "full",
+        "seed": 831001,
+        "control_after_generate": "fixed",
+        "cfg_scale": -1
+      }
+    },
+    {
+      "id": 9,
+      "type": "Text Multiline",
+      "pos": [
+        -521.7697273023191,
+        390.16946688565366
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "text",
+          "name": "text",
+          "type": "STRING",
+          "widget": {
+            "name": "text"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            8,
+            9
+          ]
+        }
+      ],
+      "title": "Style",
+      "properties": {
+        "cnr_id": "was-ns",
+        "ver": "3.0.1",
+        "Node name for S&R": "Text Multiline",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "English witch house, ethereal female vocal, dark atmospheric synths, deep bass, 80 BPM"
+      ],
+      "widgets_values_named": {
+        "text": "English witch house, ethereal female vocal, dark atmospheric synths, deep bass, 80 BPM"
+      }
+    },
+    {
+      "id": 10,
+      "type": "Text Multiline",
+      "pos": [
+        -518.8775025153875,
+        663.6426864439078
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "text",
+          "name": "text",
+          "type": "STRING",
+          "widget": {
+            "name": "text"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            10,
+            11
+          ]
+        }
+      ],
+      "title": "Lyrics",
+      "properties": {
+        "cnr_id": "was-ns",
+        "ver": "3.0.1",
+        "Node name for S&R": "Text Multiline",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside\n\n[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside\n\n[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside\n\n[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside\n\n[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside"
+      ],
+      "widgets_values_named": {
+        "text": "[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside\n\n[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside\n\n[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside\n\n[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside\n\n[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside"
+      }
+    },
+    {
+      "id": 11,
+      "type": "PreviewAny",
+      "pos": [
+        260.8858415158792,
+        692.4552144501661
+      ],
+      "size": [
+        416.4861242553711,
+        188.71633787231463
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "source",
+          "name": "source",
+          "type": "*",
+          "link": 12
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "title": "Preview as Text ⏱ 0.0s",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.37.0",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        },
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
+    },
+    {
+      "id": 12,
+      "type": "PrimitiveInt",
+      "pos": [
+        -500,
+        930
+      ],
+      "size": [
+        378.42545413762696,
+        82
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            14,
+            15
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.37.0",
+        "Node name for S&R": "PrimitiveInt",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        831001,
+        "randomize"
+      ],
+      "widgets_values_named": {
+        "value": 831001,
+        "control_after_generate": "randomize"
+      }
+    },
+    {
+      "id": 13,
+      "type": "PrimitiveNode",
+      "pos": [
+        -500,
+        1210
+      ],
+      "size": [
+        360,
+        106
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "COMBO",
+          "type": "COMBO",
+          "widget": {
+            "name": "cot"
+          },
+          "links": [
+            17,
+            18
+          ]
+        }
+      ],
+      "title": "Mode / COT (Plan + Sampler)",
+      "properties": {
+        "Run widget replace on values": false
+      },
+      "widgets_values": [
+        "full",
+        "fixed",
+        ""
+      ],
+      "color": "#232",
+      "bgcolor": "#353"
     }
   ],
   "links": [
@@ -584,26 +1057,131 @@
       "YUE2_PIPE"
     ],
     [
+      4,
+      6,
+      2,
+      3,
+      10,
+      "INT"
+    ],
+    [
+      5,
+      2,
+      0,
+      7,
+      0,
+      "YUE2_PIPE"
+    ],
+    [
+      6,
+      7,
+      1,
+      6,
+      0,
+      "STRING"
+    ],
+    [
+      8,
+      9,
+      0,
+      7,
+      3,
+      "STRING"
+    ],
+    [
+      9,
+      9,
+      0,
+      3,
+      3,
+      "STRING"
+    ],
+    [
+      10,
+      10,
+      0,
+      7,
+      4,
+      "STRING"
+    ],
+    [
+      11,
+      10,
+      0,
+      3,
+      4,
+      "STRING"
+    ],
+    [
       3,
       3,
       0,
       4,
       0,
       "AUDIO"
+    ],
+    [
+      12,
+      6,
+      3,
+      11,
+      0,
+      "STRING"
+    ],
+    [
+      13,
+      7,
+      1,
+      3,
+      1,
+      "STRING"
+    ],
+    [
+      14,
+      12,
+      0,
+      7,
+      6,
+      "INT"
+    ],
+    [
+      15,
+      12,
+      0,
+      3,
+      6,
+      "INT"
+    ],
+    [
+      17,
+      13,
+      0,
+      7,
+      5,
+      "COMBO"
+    ],
+    [
+      18,
+      13,
+      0,
+      3,
+      5,
+      "COMBO"
     ]
   ],
   "groups": [],
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.75,
+      "scale": 0.6830134553650709,
       "offset": [
-        254.39998372395812,
-        426.1332194010419
+        467.47610439143614,
+        226.14106262737613
       ]
     },
     "ue_links": [],
-    "anomalous_hashes": {}
+    "anomalous_hashes": {},
+    "links_added_by_ue": []
   },
   "version": 0.4
 }

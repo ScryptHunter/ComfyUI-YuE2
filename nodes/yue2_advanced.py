@@ -39,6 +39,10 @@ class YuE2SamplingSettings:
             "semantic_penalty_window": ("INT", {"default": 50, "min": 1, "max": 100}),
             "semantic_min_tokens": ("INT", {"default": 200, "min": 0, "max": 16384}),
             "semantic_max_tokens": ("INT", {"default": 9000, "min": 1, "max": 16384}),
+        }, "optional": {
+            "semantic_max_tokens_override": ("INT", {"default": 0, "min": 0, "max": 16384,
+                "forceInput": True,
+                "tooltip": "Optional automatic duration budget. A positive value replaces only semantic max_tokens; 0 keeps the selected preset."}),
         }}
 
     RETURN_TYPES = ("YUE2_SAMPLING", "STRING")
@@ -46,7 +50,7 @@ class YuE2SamplingSettings:
     FUNCTION = "build"
     CATEGORY = "YuE2/Legacy HF Runtime/Advanced"
 
-    def build(self, preset, **values):
+    def build(self, preset, semantic_max_tokens_override=0, **values):
         if preset == "official":
             abc, sem = dict(OFFICIAL_ABC), dict(OFFICIAL_SEMANTIC)
         elif preset == "stable":
@@ -58,6 +62,8 @@ class YuE2SamplingSettings:
         else:
             abc = {k[4:]: values[k] for k in values if k.startswith("abc_")}
             sem = {k[9:]: values[k] for k in values if k.startswith("semantic_")}
+        if semantic_max_tokens_override is not None and int(semantic_max_tokens_override) > 0:
+            sem["max_tokens"] = int(semantic_max_tokens_override)
         if abc["min_tokens"] > abc["max_tokens"] or sem["min_tokens"] > sem["max_tokens"]:
             raise ValueError("min_tokens cannot exceed max_tokens")
         result = {"abc": abc, "semantic": sem, "preset": preset}

@@ -10,8 +10,20 @@
   <a href="#quick-start">Quick start</a> ·
   <a href="#model-layout">Models</a> ·
   <a href="#nodes">Nodes</a> ·
+  <a href="#automatic-duration-budget">Duration budget</a> ·
   <a href="#what-this-fork-fixes">Fork fixes</a>
 </p>
+
+## Update — 2026-09-27
+
+### More reliable ABC scores and automatic song length
+
+- **Key-aware SheetSage2 chord spelling.** Native uses the current ComfyUI core logic; Legacy HF output now uses the same logic. Enharmonic roots are written for the active key, such as `A# → Bb` or `D# → Eb` where appropriate, without changing pitch, chord quality, or timing.
+- **Automatic duration budgeting.** `YuE2 ABC Duration Budget` derives a Native duration ceiling and a Legacy semantic-token ceiling from the final ABC, including tempo changes. It is a maximum, not a requested song length; generation can finish earlier.
+- **Safer ABC edits.** Transposition and cleanup preserve musical pitch more reliably across key signatures, accidentals, contiguous notes, inline fields, slash chords, and double accidentals.
+- **Clearer vocal-range controls.** Automatic octave-safe placement and a separate manual vocal semitone control are available. `Target Voice` describes pitch range only; singer gender and timbre belong in the Style prompt.
+- **Updated workflows.** Planned Native and Legacy workflows now pass the final ABC through duration budgeting, share the intended mode controls, and use the current Universal Adapter paths.
+- **Refreshed examples.** The bundled workflows and All Nodes Showcase reflect the current node inputs and connections.
 
 ## Update — 2026-09-23
 
@@ -22,7 +34,7 @@
 - Added in-node help and clearer FL-specific loader names.
 - Updated bundled workflows to use the Universal Adapter Loader by default.
 
-Updated: 2026-09-23
+Updated: 2026-09-27
 
 ## What this is
 
@@ -42,14 +54,17 @@ The native pipe is only a Python container; it does not install `yue2_infer`, cr
 
 ## Workflows
 
-| Goal | Native node path | Reference audio |
+| Goal | Workflow path | Reference audio |
 | --- | --- | --- |
-| Generate a new song | `YuE2 Native Pipeline Loader` → `YuE2 Native Generate ABC` → ABC tools → `YuE2 Native Generate Music` → standard sampler/VAE nodes | Not required |
-| Generate directly without a score | Native pipe → `YuE2 Native Generate Music` with empty ABC → standard sampler/VAE nodes | Not required |
-| Create a cover or remix | Native pipe → `YuE2 Native Audio to ABC` → ABC tools → `YuE2 Native Generate Music` → standard sampler/VAE nodes | Required |
-| Analyze or edit a score | Any ABC string → analyzer/modifier/cleanup/range/file nodes | Not required |
+| Generate a planned song | Native Pipeline Loader → Generate ABC → ABC edits → **ABC Duration Budget** → Native Generate Music → sampler/decode | Not required |
+| Generate directly without a score | Native pipe → Native Generate Music with empty ABC → sampler/decode | Not required |
+| Create a Native cover or remix | Audio → Native SheetSage2 → ABC edits → Vocal Range → Melody Cleanup → **ABC Duration Budget** → Native Generate Music | Required |
+| Create a Legacy cover or remix | Audio → Legacy SheetSage2 → ABC edits → Vocal Range → Melody Cleanup → **ABC Duration Budget** → Legacy sampling settings / Sampler | Required |
+| Analyze or edit a score | Any ABC string → analyzer, modifier, cleanup, range, duration, or file nodes | Not required |
 
 For covers, SheetSage2 extracts a symbolic score. YuE2 creates a new recording from that score, the target style, and the lyrics. This is not voice cloning and does not preserve the source waveform.
+
+The direct-generation option is still available at the node level, but it has no ABC score from which to calculate an automatic duration budget. The bundled Text-to-Song examples use the planned-score path.
 
 ## What this fork fixes
 
@@ -59,6 +74,10 @@ For covers, SheetSage2 extracts a symbolic score. YuE2 creates a new recording f
   as ComfyUI's official YuE2 workflows.
 - **Editable native score path** -&#x20; the ABC tools sit directly between the
   official planning, SheetSage2, and music-conditioning nodes.
+- **Key-aware SheetSage2 chord spelling** - Native uses ComfyUI's current core behavior; Legacy HF ABC output is normalized through the same helper. This changes notation, not the underlying pitch.
+- **Automatic ABC duration ceilings** - Native and Legacy workflows derive generation limits from the final score instead of relying on a guessed duration or token count.
+- **Source-preserving ABC edits** - no-op edits retain the input text; transposition and cleanup track key signatures and accidentals so kept notes retain their intended pitches.
+- **Pitch-range controls** - vocal range retargeting changes Vocal ABC pitches only. It does not select a singer or change vocal timbre.
 
 The following fixes remain available for old workflows under **Legacy HF Runtime**:
 
@@ -136,34 +155,36 @@ yue2_native:
 
 1. Load `yue2_3b_int8_convrot.safetensors` with **YuE2 Native Pipeline Loader (ComfyUI)**.
 2. Connect its `pipe` output to the native generation nodes, or use its standard outputs with stock ComfyUI nodes.
-3. Add **YuE2 Native Generate ABC** when you want an editable score.
-4. Insert any of this fork's ABC nodes between **YuE2 Native Generate ABC** and **YuE2 Native Generate Music**.
-5. Use `full` for melody plus chords, `melody` for a melody-only cover plan, or leave ABC empty for direct generation.
+3. For a planned song, add **YuE2 Native Generate ABC**, then make any tempo, transpose, or cleanup edits.
+4. Connect the final ABC to both **YuE2 Native Generate Music.abc** and **YuE2 ABC Duration Budget.abc**. Connect `native_max_duration` to **Native Generate Music.max_duration**.
+5. Use `full` for melody plus chords or `melody` for a melody-only cover plan. Leaving ABC empty remains available for direct generation, but does not use an ABC-derived duration budget.
 
 Importable native workflows:
 
-- [`YuE2_Native_Text_to_Song.json`](./example_workflows/YuE2_Native_Text_to_Song.json) -&#x20; native pipe generation with style/lyrics helpers, editable ABC, analysis, and the standard sampler/decode path.
-- [`YuE2_Native_Reference_Remix.json`](./example_workflows/YuE2_Native_Reference_Remix.json) -&#x20; native SheetSage2 remix with prompt helpers, tempo/range/cleanup tools, and ABC/lyrics analysis.
+| Workflow | Use |
+| --- | --- |
+| [`YuE2_Native_Text_to_Song.json`](./example_workflows/YuE2_Native_Text_to_Song.json) | Planned Native generation with final-ABC duration budgeting. |
+| [`YuE2_Native_Text_to_Song_Simple_LoRA.json`](./example_workflows/YuE2_Native_Text_to_Song_Simple_LoRA.json) | Simpler Native text-to-song graph with shared Mode and Universal Adapter controls. |
+| [`YuE2_Native_Reference_Remix.json`](./example_workflows/YuE2_Native_Reference_Remix.json) | Native SheetSage2 remix with ABC edits and an automatic duration ceiling. |
+| [`YuE2_Reference_Remix.json`](./example_workflows/YuE2_Reference_Remix.json) | Legacy HF remix with a semantic-token duration override. |
+| [`YuE2_Text_to_Song.json`](./example_workflows/YuE2_Text_to_Song.json) | Staged Legacy planning: Plan → ABC Duration Budget → Render settings → RenderPlan. |
+| [`YuE2_Text_to_Song_Simple_LoRA.json`](./example_workflows/YuE2_Text_to_Song_Simple_LoRA.json) | Simpler Legacy graph with a shared Mode/COT control. |
+| [`YuE2_All_Nodes_Showcase.json`](./example_workflows/YuE2_All_Nodes_Showcase.json) | Current node schemas and example connections. |
 
-The previous isolated-runtime workflows remain in the folder for backward compatibility and are now considered legacy.
+Legacy workflows remain available for saved-workflow compatibility; their reference and planned Text-to-Song examples are listed above.
 
 ## Cover workflow
 
 ```text
-Load Audio
-    ↓
-YuE2 Native Pipeline Loader (audio_encoder = sheetsage2_bf16)
-    ├── native pipe → YuE2 Native Audio to ABC / Generate Music
-    └── MODEL / CLIP / VAE / AUDIO_ENCODER → stock ComfyUI nodes
-
-SheetSage2 ABC
-    → ABC Modifier
-    → Vocal Range Retarget
-    → Melody Cleanup
-    → YuE2 Native Generate Music (mode = melody)
+Audio → SheetSage2 → ABC Modifier → Vocal Range Retarget → Melody Cleanup → final ABC
+                                                                        ├→ Native Generate Music.abc
+                                                                        └→ ABC Duration Budget.abc
+                                                                             └→ Native Generate Music.max_duration
 ```
 
-The custom ABC nodes only transform text, so they work with INT8 and BF16 checkpoints identically. They never depend on the model's weight format.
+Connect the final ABC to both destinations. The duration node sees tempo edits because it is placed after the ABC tools. Its ceiling allows the model to finish earlier if the score ends sooner. The same structure works for Legacy workflows by connecting `legacy_semantic_max_tokens` to sampling settings or the direct Sampler semantic-token input.
+
+Legacy HF SheetSage2 output uses ComfyUI's current key-aware spelling helper before the ABC reaches these editing nodes. The correction changes enharmonic notation only. The ABC tools also work with INT8 and BF16 checkpoints because they transform score text, not model weights.
 
 ## Nodes
 
@@ -176,8 +197,9 @@ The custom ABC nodes only transform text, so they work with INT8 and BF16 checkp
 | **YuE2 Native Audio to ABC** | Uses the pipe's native SheetSage2 encoder to transcribe reference audio. |
 | **YuE2 Native Models Loader (ComfyUI)** | Backward-compatible standard-output loader for earlier native workflows. |
 | **YuE2 ABC Analyzer** | Reports BPM, key, meter, approximate duration, note counts, ranges, medians, and vocal warnings. |
+| **YuE2 ABC Duration Budget** | Analyzes the final ABC and derives a Native duration ceiling and Legacy semantic-token ceiling, with configurable headroom and tail time. |
 | **YuE2 ABC Modifier** | Overrides or scales BPM, transposes the score or selected voices, shifts octaves, removes chords, and trims sections. |
-| **YuE2 Vocal Range Retarget** | Applies an octave-safe Vocal shift toward common male/female ranges, or a manual shift. |
+| **YuE2 Vocal Range Retarget** | Applies an octave-safe or manual Vocal pitch shift toward a selected range. It does not select gender, timbre, or singer identity. |
 | **YuE2 Melody Cleanup** | Replaces suspiciously short or extreme Vocal notes with equal-duration rests while preserving timing. |
 | **YuE2 ABC File Loader / Saver** | Loads editable `.abc` files from input or saves them under output. |
 | **YuE2 MIDI File Saver** | Saves legacy SheetSage2 MIDI output. |
@@ -204,6 +226,22 @@ Native generation uses ComfyUI's official controls:
 | `cfg=1.0` | Native single-pass acoustic decoding. |
 
 `ABC Modifier`, `Vocal Range Retarget`, and `Melody Cleanup` run before semantic generation and are independent of INT8/BF16 model precision.
+
+### Automatic duration budget
+
+Place **YuE2 ABC Duration Budget** after all edits that can change the score or its tempo. Its default calculation is:
+
+```text
+recommended_seconds = score_seconds * (1 + headroom_percent / 100) + tail_seconds
+```
+
+Defaults are `headroom_percent=10` and `tail_seconds=2`.
+
+- On Native workflows, connect `native_max_duration` to `YuE2 Native Generate Music.max_duration`.
+- On Legacy advanced workflows, connect `legacy_semantic_max_tokens` to `YuE2SamplingSettings.semantic_max_tokens_override`.
+- On Legacy simple workflows without sampling settings, connect it to the Sampler's semantic max-token input.
+
+Connect the same final ABC to the budget node and music generation. The calculated value is an upper limit, not a target duration; the score can end earlier. Apply tempo changes before calculating the budget. Native and Legacy use different output units from the same score analysis.
 
 ### Legacy SheetSage2 ABC recovery
 

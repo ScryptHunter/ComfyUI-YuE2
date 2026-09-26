@@ -13,6 +13,7 @@ import torch
 
 from ..compat.sheetsage2 import load_sheetsage2
 from .paths import model_dirs, resolve
+from ..compat.sheetsage2_spelling import correct_abc_chord_spellings
 
 _SAMPLE_RATE = 24000
 _SHEETSAGE2_REPO = "m-a-p/SheetSage2"
@@ -187,6 +188,18 @@ def transcribe(model, waveform: torch.Tensor, sample_rate: int, *,
             result.setdefault("abc_error", str(exc))
 
     abc_text = result.get("abc") or ""
+    if abc_text:
+        corrected_abc = correct_abc_chord_spellings(abc_text)
+        if corrected_abc != abc_text:
+            abc_text = corrected_abc
+            result["abc"] = abc_text
+            saved_score = os.path.join(output_dir, "score.abc") if output_dir else None
+            if saved_score and os.path.isfile(saved_score):
+                try:
+                    with io.open(saved_score, "w", encoding="utf-8", newline="") as f:
+                        f.write(abc_text)
+                except OSError as exc:
+                    print(f"[SheetSage2] Could not update saved score spelling: {exc}")
     if not abc_text and abc_error_mode in {"snap_invalid_notes", "skip_invalid_notes"}:
         abc_text = _fallback_abc_from_midi(result, skip_invalid=abc_error_mode == "skip_invalid_notes")
         result["abc"] = abc_text

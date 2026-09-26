@@ -1,8 +1,8 @@
 {
-  "id": "1c23fc19-e540-4df2-820b-571eabbdb761",
+  "id": "a455f827-5f08-400e-9f17-72f8e93173e1",
   "revision": 0,
-  "last_node_id": 33,
-  "last_link_id": 17,
+  "last_node_id": 42,
+  "last_link_id": 37,
   "nodes": [
     {
       "id": 1,
@@ -42,7 +42,9 @@
           "localized_name": "offload_ar",
           "name": "offload_ar",
           "type": "BOOLEAN",
-          "links": []
+          "links": [
+            36
+          ]
         },
         {
           "localized_name": "vae_decode",
@@ -54,7 +56,9 @@
           "localized_name": "vae_tile_frames",
           "name": "vae_tile_frames",
           "type": "INT",
-          "links": []
+          "links": [
+            37
+          ]
         }
       ],
       "title": "Optional GPU Memory Preset",
@@ -87,7 +91,7 @@
         110
       ],
       "flags": {},
-      "order": 6,
+      "order": 7,
       "mode": 4,
       "inputs": [
         {
@@ -113,17 +117,24 @@
       "id": 5,
       "type": "YuE2SamplingSettings",
       "pos": [
-        387.4890776596061,
-        90.05186037254475
+        448.9889050827021,
+        88.95960511207723
       ],
       "size": [
         401.90390625,
         585.8844999999999
       ],
       "flags": {},
-      "order": 1,
+      "order": 10,
       "mode": 0,
       "inputs": [
+        {
+          "localized_name": "semantic_max_tokens_override",
+          "name": "semantic_max_tokens_override",
+          "shape": 7,
+          "type": "INT",
+          "link": 35
+        },
         {
           "localized_name": "preset",
           "name": "preset",
@@ -266,7 +277,7 @@
           "name": "settings",
           "type": "YUE2_SAMPLING",
           "links": [
-            3
+            32
           ]
         },
         {
@@ -336,7 +347,7 @@
         226
       ],
       "flags": {},
-      "order": 4,
+      "order": 5,
       "mode": 0,
       "inputs": [
         {
@@ -382,7 +393,7 @@
           "widget": {
             "name": "offload_ar"
           },
-          "link": null
+          "link": 36
         },
         {
           "localized_name": "offline",
@@ -422,6 +433,7 @@
           ]
         }
       ],
+      "title": "YuE2 Model Loader (Legacy HF) ⏱ 0.0s",
       "properties": {
         "aux_id": "ScryptHunter/ComfyUI-YuE2",
         "ver": "fd0d9e588decacde9a5e4c547035d900f3ae5113",
@@ -454,262 +466,6 @@
       }
     },
     {
-      "id": 27,
-      "type": "YuE2Sampler",
-      "pos": [
-        902.6238527340837,
-        77.19081984275623
-      ],
-      "size": [
-        416.8231893615723,
-        601.684655319214
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [
-        {
-          "localized_name": "pipeline",
-          "name": "pipeline",
-          "type": "YUE2_PIPE",
-          "link": 17
-        },
-        {
-          "localized_name": "abc",
-          "name": "abc",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "localized_name": "sampling_settings",
-          "name": "sampling_settings",
-          "shape": 7,
-          "type": "YUE2_SAMPLING",
-          "link": 3
-        },
-        {
-          "localized_name": "style",
-          "name": "style",
-          "type": "STRING",
-          "widget": {
-            "name": "style"
-          },
-          "link": 6
-        },
-        {
-          "localized_name": "lyrics",
-          "name": "lyrics",
-          "type": "STRING",
-          "widget": {
-            "name": "lyrics"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "cot",
-          "name": "cot",
-          "type": "COMBO",
-          "widget": {
-            "name": "cot"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "seed",
-          "name": "seed",
-          "type": "INT",
-          "widget": {
-            "name": "seed"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "cfg_scale",
-          "name": "cfg_scale",
-          "type": "FLOAT",
-          "widget": {
-            "name": "cfg_scale"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "ode_steps",
-          "name": "ode_steps",
-          "type": "INT",
-          "widget": {
-            "name": "ode_steps"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "abc_max_tokens",
-          "name": "abc_max_tokens",
-          "type": "INT",
-          "widget": {
-            "name": "abc_max_tokens"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "semantic_max_tokens",
-          "name": "semantic_max_tokens",
-          "type": "INT",
-          "widget": {
-            "name": "semantic_max_tokens"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "abc_temperature",
-          "name": "abc_temperature",
-          "type": "FLOAT",
-          "widget": {
-            "name": "abc_temperature"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "semantic_temperature",
-          "name": "semantic_temperature",
-          "type": "FLOAT",
-          "widget": {
-            "name": "semantic_temperature"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "save_flac",
-          "name": "save_flac",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "save_flac"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "save_abc",
-          "name": "save_abc",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "save_abc"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "vae_decode",
-          "name": "vae_decode",
-          "type": "COMBO",
-          "widget": {
-            "name": "vae_decode"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "vae_tile_frames",
-          "name": "vae_tile_frames",
-          "type": "INT",
-          "widget": {
-            "name": "vae_tile_frames"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "abort_after_plan",
-          "name": "abort_after_plan",
-          "shape": 7,
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "abort_after_plan"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "save_artifacts",
-          "name": "save_artifacts",
-          "shape": 7,
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "save_artifacts"
-          },
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "localized_name": "audio",
-          "name": "audio",
-          "type": "AUDIO",
-          "links": [
-            4
-          ]
-        },
-        {
-          "localized_name": "abc_score",
-          "name": "abc_score",
-          "type": "STRING",
-          "links": []
-        },
-        {
-          "localized_name": "info",
-          "name": "info",
-          "type": "STRING",
-          "links": []
-        }
-      ],
-      "title": "All-in-one Generator (alternative) ⏱ 2m42.6s",
-      "properties": {
-        "aux_id": "ScryptHunter/ComfyUI-YuE2",
-        "ver": "fd0d9e588decacde9a5e4c547035d900f3ae5113",
-        "Node name for S&R": "YuE2Sampler",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "input_ue_unconnectable": {},
-          "version": "7.8"
-        }
-      },
-      "widgets_values": [
-        "English indie pop, warm female vocal, clean electric guitar, soft analog synths, restrained drums, intimate delivery, hopeful nocturnal mood",
-        "[verse]\nCity lights are fading slowly\nMorning waits beyond the blue\nEmpty roads begin to open\nEvery turn is leading through\n\n[chorus]\nCarry every spark of wonder\nHold it close against the night\nEven when the rain is falling\nWe can follow hidden light\n\n[verse]\nDistant windows wake like embers\nSilver clouds begin to move\nAll the words we left unspoken\nFind a quiet place to bloom\n\n[bridge]\nStay until the sky is changing\nStay until the shadows go\n\n[final chorus]\nCarry every spark of wonder\nLet it guide us into light\n",
-        "full",
-        188297206606803,
-        "randomize",
-        -1,
-        32,
-        4096,
-        9000,
-        0.7,
-        1,
-        false,
-        true,
-        "auto",
-        false,
-        false,
-        false
-      ],
-      "widgets_values_named": {
-        "style": "English indie pop, warm female vocal, clean electric guitar, soft analog synths, restrained drums, intimate delivery, hopeful nocturnal mood",
-        "lyrics": "[verse]\nCity lights are fading slowly\nMorning waits beyond the blue\nEmpty roads begin to open\nEvery turn is leading through\n\n[chorus]\nCarry every spark of wonder\nHold it close against the night\nEven when the rain is falling\nWe can follow hidden light\n\n[verse]\nDistant windows wake like embers\nSilver clouds begin to move\nAll the words we left unspoken\nFind a quiet place to bloom\n\n[bridge]\nStay until the sky is changing\nStay until the shadows go\n\n[final chorus]\nCarry every spark of wonder\nLet it guide us into light\n",
-        "cot": "full",
-        "seed": 188297206606803,
-        "control_after_generate": "randomize",
-        "cfg_scale": -1,
-        "ode_steps": 32,
-        "abc_max_tokens": 4096,
-        "semantic_max_tokens": 9000,
-        "abc_temperature": 0.7,
-        "semantic_temperature": 1,
-        "save_flac": false,
-        "save_abc": true,
-        "vae_decode": "auto",
-        "vae_tile_frames": false,
-        "abort_after_plan": false,
-        "save_artifacts": false
-      },
-      "color": "#322",
-      "bgcolor": "#533"
-    },
-    {
       "id": 4,
       "type": "YuE2LyricsStructurer",
       "pos": [
@@ -721,7 +477,7 @@
         298.1460560820592
       ],
       "flags": {},
-      "order": 2,
+      "order": 1,
       "mode": 4,
       "inputs": [
         {
@@ -811,8 +567,8 @@
         354.91972601632733
       ],
       "flags": {},
-      "order": 3,
-      "mode": 0,
+      "order": 2,
+      "mode": 4,
       "inputs": [
         {
           "localized_name": "language",
@@ -910,9 +666,7 @@
           "localized_name": "style",
           "name": "style",
           "type": "STRING",
-          "links": [
-            6
-          ]
+          "links": []
         }
       ],
       "title": "YuE2 Style Prompt Builder ⏱ 1m12.5s",
@@ -965,14 +719,14 @@
         164.3923446807861
       ],
       "flags": {},
-      "order": 8,
+      "order": 13,
       "mode": 0,
       "inputs": [
         {
           "localized_name": "audio",
           "name": "audio",
           "type": "AUDIO",
-          "link": 4
+          "link": 33
         },
         {
           "localized_name": "filename_prefix",
@@ -1016,10 +770,10 @@
           "localized_name": "audio",
           "name": "audio",
           "type": "AUDIO",
-          "links": null
+          "links": []
         }
       ],
-      "title": "Save Audio (Advanced) ⏱ 8.4s",
+      "title": "Save Audio (Advanced) ⏱ 6.3s",
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.35.0",
@@ -1047,15 +801,15 @@
       "id": 33,
       "type": "YuE2UniversalAdapterLoader",
       "pos": [
-        21.336965187936904,
+        11.08830986872307,
         561.6767012563741
       ],
       "size": [
-        308.12265625,
+        409.5259765625,
         154
       ],
       "flags": {},
-      "order": 5,
+      "order": 6,
       "mode": 0,
       "inputs": [
         {
@@ -1108,10 +862,12 @@
           "type": "YUE2_PIPE",
           "links": [
             16,
-            17
+            22,
+            30
           ]
         }
       ],
+      "title": "YuE2 Universal Adapter Loader (LoRA / LoKr) — Legacy ⏱ 0.0s",
       "properties": {
         "aux_id": "ScryptHunter/ComfyUI-YuE2",
         "ver": "a547d60115e22b7c3d114210cd019b4918b4cb6d",
@@ -1129,14 +885,531 @@
         true
       ],
       "widgets_values_named": {
-        "ar_lora": "none",
+        "adapter": "none",
         "ar_strength": 1,
         "nar_strength": 1,
-        "auto_load_paired_nar": true,
-        "nar_lora_override": "none"
+        "enabled": true
       },
       "color": "#232",
       "bgcolor": "#353"
+    },
+    {
+      "id": 34,
+      "type": "YuE2ABCDurationBudget",
+      "pos": [
+        536.9270543236789,
+        724.3817835340529
+      ],
+      "size": [
+        292.078125,
+        142
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "abc",
+          "name": "abc",
+          "type": "STRING",
+          "link": 23
+        },
+        {
+          "localized_name": "headroom_percent",
+          "name": "headroom_percent",
+          "type": "FLOAT",
+          "widget": {
+            "name": "headroom_percent"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "tail_seconds",
+          "name": "tail_seconds",
+          "type": "FLOAT",
+          "widget": {
+            "name": "tail_seconds"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "score_duration_seconds",
+          "name": "score_duration_seconds",
+          "type": "FLOAT",
+          "links": []
+        },
+        {
+          "localized_name": "native_max_duration",
+          "name": "native_max_duration",
+          "type": "FLOAT",
+          "links": []
+        },
+        {
+          "localized_name": "legacy_semantic_max_tokens",
+          "name": "legacy_semantic_max_tokens",
+          "type": "INT",
+          "links": [
+            35
+          ]
+        },
+        {
+          "localized_name": "report",
+          "name": "report",
+          "type": "STRING",
+          "links": [
+            20
+          ]
+        }
+      ],
+      "title": "YuE2 ABC Duration Budget ⏱ 0.0s",
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "a547d60115e22b7c3d114210cd019b4918b4cb6d",
+        "Node name for S&R": "YuE2ABCDurationBudget",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        10,
+        2
+      ],
+      "widgets_values_named": {
+        "headroom_percent": 10,
+        "tail_seconds": 2
+      },
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 35,
+      "type": "PreviewAny",
+      "pos": [
+        893.6734128861468,
+        1142.3174073362375
+      ],
+      "size": [
+        416.4861242553711,
+        188.71633787231463
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "source",
+          "name": "source",
+          "type": "*",
+          "link": 20
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "title": "Preview as Text ⏱ 0.0s",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.37.0",
+        "Node name for S&R": "PreviewAny",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
+    },
+    {
+      "id": 37,
+      "type": "YuE2Plan",
+      "pos": [
+        65.47333773661295,
+        756.3175446653394
+      ],
+      "size": [
+        400,
+        278
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "pipeline",
+          "name": "pipeline",
+          "type": "YUE2_PIPE",
+          "link": 22
+        },
+        {
+          "localized_name": "abc",
+          "name": "abc",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "localized_name": "sampling_settings",
+          "name": "sampling_settings",
+          "shape": 7,
+          "type": "YUE2_SAMPLING",
+          "link": null
+        },
+        {
+          "localized_name": "style",
+          "name": "style",
+          "type": "STRING",
+          "widget": {
+            "name": "style"
+          },
+          "link": 25
+        },
+        {
+          "localized_name": "lyrics",
+          "name": "lyrics",
+          "type": "STRING",
+          "widget": {
+            "name": "lyrics"
+          },
+          "link": 27
+        },
+        {
+          "localized_name": "cot",
+          "name": "cot",
+          "type": "COMBO",
+          "widget": {
+            "name": "cot"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cfg_scale",
+          "name": "cfg_scale",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg_scale"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "plan",
+          "name": "plan",
+          "type": "YUE2_PLAN",
+          "links": [
+            31
+          ]
+        },
+        {
+          "localized_name": "abc",
+          "name": "abc",
+          "type": "STRING",
+          "links": [
+            23
+          ]
+        },
+        {
+          "localized_name": "info",
+          "name": "info",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "title": "YuE2 Generate Plan (Legacy HF) ⏱ 15.8s",
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "a547d60115e22b7c3d114210cd019b4918b4cb6d",
+        "Node name for S&R": "YuE2Plan",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "",
+        "",
+        "full",
+        831001,
+        "fixed",
+        -1
+      ],
+      "widgets_values_named": {
+        "style": "",
+        "lyrics": "",
+        "cot": "full",
+        "seed": 831001,
+        "control_after_generate": "fixed",
+        "cfg_scale": -1
+      }
+    },
+    {
+      "id": 38,
+      "type": "Text Multiline",
+      "pos": [
+        -481.72665539693054,
+        692.417699542048
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "text",
+          "name": "text",
+          "type": "STRING",
+          "widget": {
+            "name": "text"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            25
+          ]
+        }
+      ],
+      "title": "Style",
+      "properties": {
+        "cnr_id": "was-ns",
+        "ver": "3.0.1",
+        "Node name for S&R": "Text Multiline",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "English witch house, ethereal female vocal, dark atmospheric synths, deep bass, 80 BPM"
+      ],
+      "widgets_values_named": {
+        "text": "English witch house, ethereal female vocal, dark atmospheric synths, deep bass, 80 BPM"
+      }
+    },
+    {
+      "id": 39,
+      "type": "Text Multiline",
+      "pos": [
+        -484.334388648329,
+        959.2908939233002
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "text",
+          "name": "text",
+          "type": "STRING",
+          "widget": {
+            "name": "text"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            27
+          ]
+        }
+      ],
+      "title": "Lyrics",
+      "properties": {
+        "cnr_id": "was-ns",
+        "ver": "3.0.1",
+        "Node name for S&R": "Text Multiline",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside\n\n[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside\n\n[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside\n\n[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside\n\n[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside"
+      ],
+      "widgets_values_named": {
+        "text": "[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside\n\n[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside\n\n[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside\n\n[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside\n\n[verse]\nShadows fall across the night\nHold me in the fading light\n\n[chorus]\nStay until the stars collide\nLeave the waking world outside"
+      }
+    },
+    {
+      "id": 42,
+      "type": "YuE2RenderPlan",
+      "pos": [
+        935.6238069577165,
+        67.19083891624257
+      ],
+      "size": [
+        416.8231893615723,
+        420
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "pipeline",
+          "name": "pipeline",
+          "type": "YUE2_PIPE",
+          "link": 30
+        },
+        {
+          "localized_name": "plan",
+          "name": "plan",
+          "type": "YUE2_PLAN",
+          "link": 31
+        },
+        {
+          "localized_name": "sampling_settings",
+          "name": "sampling_settings",
+          "shape": 7,
+          "type": "YUE2_SAMPLING",
+          "link": 32
+        },
+        {
+          "localized_name": "abc_override",
+          "name": "abc_override",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "localized_name": "ode_steps",
+          "name": "ode_steps",
+          "type": "INT",
+          "widget": {
+            "name": "ode_steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "vae_decode",
+          "name": "vae_decode",
+          "type": "COMBO",
+          "widget": {
+            "name": "vae_decode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "vae_tile_frames",
+          "name": "vae_tile_frames",
+          "type": "INT",
+          "widget": {
+            "name": "vae_tile_frames"
+          },
+          "link": 37
+        },
+        {
+          "localized_name": "save_flac",
+          "name": "save_flac",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "save_flac"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "save_artifacts",
+          "name": "save_artifacts",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "save_artifacts"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "links": [
+            33
+          ]
+        },
+        {
+          "localized_name": "latents",
+          "name": "latents",
+          "type": "YUE2_LATENTS",
+          "links": []
+        },
+        {
+          "localized_name": "abc",
+          "name": "abc",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "info",
+          "name": "info",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "title": "YuE2 Render Plan (Legacy HF) — Auto Duration ⏱ 1m37.9s",
+      "properties": {
+        "aux_id": "ScryptHunter/ComfyUI-YuE2",
+        "ver": "a547d60115e22b7c3d114210cd019b4918b4cb6d",
+        "Node name for S&R": "YuE2RenderPlan",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        32,
+        "full",
+        0,
+        false,
+        false
+      ],
+      "widgets_values_named": {
+        "ode_steps": 32,
+        "vae_decode": "full",
+        "vae_tile_frames": 0,
+        "save_flac": false,
+        "save_artifacts": false
+      },
+      "color": "#322",
+      "bgcolor": "#533"
     }
   ],
   "links": [
@@ -1147,22 +1420,6 @@
       2,
       3,
       "INT"
-    ],
-    [
-      3,
-      5,
-      0,
-      27,
-      2,
-      "YUE2_SAMPLING"
-    ],
-    [
-      6,
-      3,
-      0,
-      27,
-      3,
-      "STRING"
     ],
     [
       15,
@@ -1181,30 +1438,110 @@
       "YUE2_PIPE"
     ],
     [
-      17,
+      20,
+      34,
+      3,
+      35,
+      0,
+      "STRING"
+    ],
+    [
+      22,
       33,
       0,
-      27,
+      37,
       0,
       "YUE2_PIPE"
     ],
     [
-      4,
+      23,
+      37,
+      1,
+      34,
+      0,
+      "STRING"
+    ],
+    [
+      25,
+      38,
+      0,
+      37,
+      3,
+      "STRING"
+    ],
+    [
       27,
+      39,
+      0,
+      37,
+      4,
+      "STRING"
+    ],
+    [
+      30,
+      33,
+      0,
+      42,
+      0,
+      "YUE2_PIPE"
+    ],
+    [
+      31,
+      37,
+      0,
+      42,
+      1,
+      "YUE2_PLAN"
+    ],
+    [
+      32,
+      5,
+      0,
+      42,
+      2,
+      "YUE2_SAMPLING"
+    ],
+    [
+      35,
+      34,
+      2,
+      5,
+      0,
+      "INT"
+    ],
+    [
+      33,
+      42,
       0,
       29,
       0,
       "AUDIO"
+    ],
+    [
+      36,
+      1,
+      1,
+      2,
+      4,
+      "BOOLEAN"
+    ],
+    [
+      37,
+      1,
+      3,
+      42,
+      6,
+      "INT"
     ]
   ],
   "groups": [
     {
       "id": 1,
-      "title": "TEXT TO SONG ? no reference audio required",
+      "title": "TEXT TO SONG — Plan → Auto Duration → Render",
       "bounding": [
         0,
         0,
-        1342.266534042358,
+        1715,
         1078.4557329788204
       ],
       "color": "#3f789e",
@@ -1226,10 +1563,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.5464107642920575,
+      "scale": 0.6611570247933911,
       "offset": [
-        641.5696630698129,
-        365.94796257342813
+        469.95549849654947,
+        -8.397853952655185
       ]
     },
     "frontendVersion": "1.51.10",
