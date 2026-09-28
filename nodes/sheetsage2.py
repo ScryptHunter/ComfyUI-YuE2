@@ -23,7 +23,32 @@ _SECTION_ALIASES = {
 
 # 纯音乐段落（歌词结构化时不分配歌词行）
 _NON_SINGING = {"intro", "silence", "interlude", "instrumental", "solo"}
-_SECTION_TAG_LINE = re.compile(r"^\s*\[[^\]\r\n]+\]\s*$", re.IGNORECASE)
+_SECTION_TAG_LINE = re.compile(r"^\s*\[([^\]\r\n]+)\]\s*$")
+_SECTION_LABEL = re.compile(
+    r"(?:final\s+)?(?:intro|verse|pre[- ]chorus|chorus|post[- ]chorus|bridge|breakdown|"
+    r"instrumental(?:\s+build)?|interlude|outro|solo|hook|refrain)(?:\s+\d+)?",
+    re.IGNORECASE,
+)
+_PRODUCTION_HINT = re.compile(
+    r"\b(?:drums?|reverb(?:erant)?|piano|bass|guitars?|synth(?:esizer)?s?|"
+    r"vocals?|whisper(?:s|ed|ing)?|harmon(?:y|ies)|fade(?:s|d)?|distort(?:ed|ion)?|"
+    r"soprano|alto|tenor|baritone|mezzo|breathy|airy|intimate|emotional|layered|"
+    r"cinematic|percussion|beats?|echo(?:es)?|pulse|pads?|texture|register|delivery|"
+    r"reversed|half[- ]time|grows?|darker|production)\b",
+    re.IGNORECASE,
+)
+
+
+def _bracket_line_kind(line):
+    match = _SECTION_TAG_LINE.fullmatch(line)
+    if not match:
+        return None
+    label = match.group(1).strip()
+    if _SECTION_LABEL.fullmatch(label):
+        return "section"
+    if _PRODUCTION_HINT.search(label):
+        return "production"
+    return "unknown"
 
 
 def parse_structure_spans(text: str, duration_hint: float):
@@ -556,16 +581,24 @@ class LyricsStructurer:
     CATEGORY = "YuE2/SheetSage2"
 
     def format(self, lyrics_text, structure, verse_lines, section_plan):
-        # 已带 [tag] 的文本原样保留（用户手工标好就尊重）
-        if any(_SECTION_TAG_LINE.fullmatch(line) for line in (lyrics_text or "").splitlines()):
-            cleaned = "\n".join(
-                ln for ln in (l.strip() for l in lyrics_text.splitlines())
-                if ln and not _SECTION_TAG_LINE.fullmatch(ln))
-            report = f"Existing section tags preserved ({len(cleaned.splitlines())} lyric lines)"
+        source_lines = (lyrics_text or "").splitlines(keepends=True)
+        removed = [line.strip() for line in source_lines if _bracket_line_kind(line.strip()) == "production"]
+        unknown = [line.strip() for line in source_lines if _bracket_line_kind(line.strip()) == "unknown"]
+        kept = [line for line in source_lines if _bracket_line_kind(line.strip()) != "production"]
+        notice = ""
+        if removed:
+            notice += (f" | Production/style instructions were removed from Lyrics; move them to Style. "
+                       f"Removed {len(removed)}: {', '.join(removed)}")
+        if unknown:
+            notice += f" | Unknown bracket tags preserved ({len(unknown)}): {', '.join(unknown)}"
+        if any(_bracket_line_kind(line.strip()) == "section" for line in kept) or unknown:
+            lyric_count = sum(bool(line.strip()) and _bracket_line_kind(line.strip()) is None for line in kept)
+            report = f"Existing section tags preserved ({lyric_count} lyric lines){notice}"
             print(f"[Lyrics Structurer] {report}")
-            return (lyrics_text.rstrip() + "\n", report)
+            newline = "\r\n" if "\r\n" in (lyrics_text or "") else "\n"
+            return ("".join(kept).rstrip("\r\n") + newline, report)
 
-        lines = [ln.strip() for ln in (lyrics_text or "").splitlines() if ln.strip()]
+        lines = [ln.strip() for ln in kept if ln.strip()]
         if not lines:
             raise ValueError("lyrics_text must not be empty")
 
@@ -600,7 +633,7 @@ class LyricsStructurer:
 
         lyrics = "\n".join(out).rstrip() + "\n"
         report = (f"lines={len(lines)} sections={sections} "
-                  f"plan={','.join(f'{n}:{c}' for n, c in plan)}")
+                  f"plan={','.join(f'{n}:{c}' for n, c in plan)}{notice}")
         print(f"[Lyrics Structurer] {report}")
         return (lyrics, report)
 

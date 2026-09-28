@@ -116,7 +116,7 @@ def read_adapter(path, branch):
         raise ValueError("LoRA changed while loading; retry with a completed checkpoint")
     return BranchAdapter(branch, layers, meta, str(Path(path).resolve()), before, deltas)
 
-def paired_nar(ar_path, search_roots=()):
+def paired_nar(ar_path, search_roots=(), required=False):
     """Resolve metadata, including FL exports relative to the YuE2 LoRA root.
 
     Never guess a '-nar' filename or allow metadata to escape a search root.
@@ -137,6 +137,9 @@ def paired_nar(ar_path, search_roots=()):
         if candidate.is_relative_to(root) and candidate.is_file():
             metadata(candidate, "nar")
             return str(candidate)
+    if required:
+        raise ValueError(f"Paired NAR adapter required by this FL-YuE2 checkpoint was not found: {reference}. "
+                         "Place the referenced NAR checkpoint next to the AR adapter or in the resolved YuE2 LoRA search root.")
     warnings.warn(f"Paired NAR adapter missing: {reference}; continuing with AR only", stacklevel=2)
     return None
 
@@ -144,6 +147,8 @@ def load_pair(ar_path=None, nar_override=None, auto=True, ar_strength=1.0,
               nar_strength=1.0, search_roots=()):
     nar_path = nar_override
     if not nar_path and ar_path and auto:
+        # Keep the low-level API's historical warning fallback. Node-level auto
+        # discovery validates the required FL dependency before calling here.
         nar_path = paired_nar(ar_path, search_roots)
     adapter = Yue2Adapter(read_adapter(ar_path, "ar") if ar_path else None,
                           read_adapter(nar_path, "nar") if nar_path else None,

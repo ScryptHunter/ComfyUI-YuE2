@@ -83,7 +83,7 @@ def test_transcribe_corrects_returned_abc_and_saved_score_without_changing_event
     monkeypatch.setattr(spelling, "_load_core_helpers", lambda: (corrector, normalizer))
 
     source = 'K:D#\r\n"D#" C2|\r\n'
-    expected = 'K:Eb\r\n"Eb" C2|\r\n'
+    expected = 'K:D#\r\n"Eb" C2|\r\n'
     score_path = tmp_path / "score.abc"
     with score_path.open("w", encoding="utf-8", newline="") as stream:
         stream.write(source)
@@ -122,6 +122,27 @@ def test_transcribe_does_not_rewrite_unchanged_score(sheetsage_module, monkeypat
         )
     assert abc_text == result["abc"] == source
     assert score_path.read_text(encoding="utf-8") == source
+
+
+def test_transcribe_preserves_enharmonic_key_and_bare_notes_without_rewriting(
+    sheetsage_module, monkeypatch, tmp_path,
+):
+    normalizer = mock.Mock(side_effect=lambda key: {"C#:major": "Db:major"}.get(key, key))
+    monkeypatch.setattr(spelling, "_load_core_helpers", lambda: (lambda chord, key: chord, normalizer))
+    source = 'K:C#\r\nV:Vocal\r\nC D E F|\r\n'
+    score_path = tmp_path / "score.abc"
+    with score_path.open("w", encoding="utf-8", newline="") as stream:
+        stream.write(source)
+    model = FakeModel({"abc": source, "midi": b"raw-midi"})
+
+    with mock.patch.object(sheetsage_module.io, "open", side_effect=AssertionError("score rewritten")):
+        abc_text, _structure, result, midi = sheetsage_module.transcribe(
+            model, FakeWaveform(), 24000, output_dir=str(tmp_path),
+        )
+    assert abc_text == result["abc"] == source
+    assert score_path.read_bytes() == source.encode("utf-8")
+    assert midi == b"raw-midi"
+    normalizer.assert_called_once_with("C#:major")
 
 
 def test_transcribe_midi_recovery_still_writes_abc(sheetsage_module, tmp_path):

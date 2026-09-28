@@ -15,7 +15,9 @@ PC = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
 SHARP_NAMES = ["C", "^C", "D", "^D", "E", "F", "^F", "G", "^G", "A", "^A", "B"]
 FLAT_NAMES = ["C", "_D", "D", "_E", "E", "F", "_G", "G", "_A", "A", "_B", "B"]
 KEY_PC = {"C":0,"C#":1,"Db":1,"D":2,"D#":3,"Eb":3,"E":4,"F":5,"F#":6,"Gb":6,
-          "G":7,"G#":8,"Ab":8,"A":9,"A#":10,"Bb":10,"B":11}
+          "G":7,"G#":8,"Ab":8,"A":9,"A#":10,"Bb":10,"B":11,"Cb":11}
+CANONICAL_MAJOR_KEYS = ("C","Db","D","Eb","E","F","F#","G","Ab","A","Bb","B")
+CANONICAL_MINOR_KEYS = ("C","C#","D","Eb","E","F","F#","G","G#","A","Bb","B")
 FIFTHS_MAJOR = {"C":0,"G":1,"D":2,"A":3,"E":4,"B":5,"F#":6,"C#":7,
                 "F":-1,"Bb":-2,"Eb":-3,"Ab":-4,"Db":-5,"Gb":-6,"Cb":-7}
 FIFTHS_MINOR = {"A":0,"E":1,"B":2,"F#":3,"C#":4,"G#":5,"D#":6,"A#":7,
@@ -44,7 +46,7 @@ def _key_accidentals(value):
 def _pitch(match, key_acc, state):
     letter, octs, acc = match.group("letter"), match.group("oct"), match.group("acc")
     key = _note_state_key(match)
-    octave = key[1]
+    octave = _note_octave(match)
     if acc:
         delta = {"=":0,"^":1,"^^":2,"_":-1,"__":-2}[acc]
         state[key] = delta
@@ -54,10 +56,16 @@ def _pitch(match, key_acc, state):
 
 
 def _note_state_key(match):
+    # The target ABC parser carries an explicit accidental across octaves of
+    # the same letter until a barline, independently for each voice.
+    return match.group("letter").upper()
+
+
+def _note_octave(match):
     letter, octs = match.group("letter"), match.group("oct")
     octave = 5 if letter.islower() else 4
     octave += octs.count("'") - octs.count(",")
-    return letter.upper(), octave
+    return octave
 
 
 def _note_name(midi):
@@ -91,8 +99,8 @@ def _abc_note_keyaware(midi, key_acc, state, duration="", tie="", prefer_flats=F
     desired = {"": 0, "^": 1, "_": -1}.get(accidental)
     if desired is None:
         desired = accidental.count("^") - accidental.count("_")
-    state_key = (letter.upper(), octave)
-    effective = state.get(state_key, key_acc.get(letter.upper(), 0))
+    state_key = letter.upper()
+    effective = state.get(state_key, key_acc.get(state_key, 0))
     out_acc = ""
     if desired != effective:
         out_acc = "=" if desired == 0 else ("^" * desired if desired > 0 else "_" * -desired)
@@ -103,15 +111,13 @@ def _abc_note_keyaware(midi, key_acc, state, duration="", tie="", prefer_flats=F
 
 
 def _transpose_key(value, semitones):
-    root, suffix, _ = _key_parts(value)
+    root, suffix, minor = _key_parts(value)
     pc = (KEY_PC.get(root, 0) + semitones) % 12
-    prefer_flats = "b" in root
-    names = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"] if prefer_flats else \
-            ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]
+    names = CANONICAL_MINOR_KEYS if minor else CANONICAL_MAJOR_KEYS
     return names[pc] + suffix
 
 
-def _transpose_chords(text, semitones):
+def _transpose_chords(text, semitones, prefer_flats=None):
     def pitch_class(root):
         m = re.fullmatch(r"([A-G])((?:#{1,2}|b{1,2})?)", root)
         if not m:
@@ -132,12 +138,13 @@ def _transpose_chords(text, semitones):
         if not root_match:
             return body
         root = root_match.group(1)
-        prefer_flats = "b" in root or ("#" not in root and semitones < 0)
+        flats = (prefer_flats if prefer_flats is not None else
+                 "b" in root or ("#" not in root and semitones < 0))
         rest = body[root_match.end():]
-        result = transpose_root(root, prefer_flats) + rest
+        result = transpose_root(root, flats) + rest
         # Numeric slash extensions (e.g. C6/9) are not bass notes.
         return re.sub(r"/([A-G](?:#{1,2}|b{1,2})?)",
-                      lambda m: "/" + transpose_root(m.group(1), prefer_flats), result)
+                      lambda m: "/" + transpose_root(m.group(1), flats), result)
 
     return re.sub(r'"([^"]*)"', lambda m: '"' + transpose_body(m.group(1)) + '"', text)
 
@@ -440,11 +447,13 @@ class YuE2DurationBudget:
 
 
 class ABCModifier:
-    DESCRIPTION="Changes score tempo, transposes all or selected SheetSage2 voices, removes chords, and drops named sections."
+    DESCRIPTION=("Changes score tempo, transposes SheetSage2 voices, removes chords, and drops sections. "
+                 "Tempo keep preserves ABC Q fields and ignores the BPM override input.")
     @classmethod
     def INPUT_TYPES(cls): return {"required":{
         "abc":("STRING",{"multiline":True}), "tempo_mode":(["keep","override","multiplier"],),
-        "bpm":("FLOAT",{"default":120.,"min":20.,"max":400.,"step":.1}),
+        "bpm":("FLOAT",{"default":120.,"min":20.,"max":400.,"step":.1,
+                       "tooltip":"Used only when Tempo Mode is override; ignored for keep and multiplier."}),
         "tempo_multiplier":("FLOAT",{"default":1.,"min":.25,"max":4.,"step":.01}),
         "transpose_scope":(["whole_score","vocal_only","instrumental_only","none"],),
         "semitones":("INT",{"default":0,"min":-36,"max":36}),
@@ -506,7 +515,7 @@ class ABCModifier:
                         if remove_chords:
                             pieces.append("")
                         elif transpose_scope=="whole_score" and semitones:
-                            pieces.append(_transpose_chords(seg,semitones))
+                            pieces.append(_transpose_chords(seg,semitones,_prefer_flats(output_key)))
                         else:
                             pieces.append(seg)
                         continue
@@ -573,7 +582,14 @@ class ABCModifier:
                 newline="\r\n" if "\r\n" in abc else "\n"
                 lines.insert(insert,f"Q:1/4={target:g}{newline}")
             result="".join(lines)
-        report=(f"bpm {old_bpm:g}->{target:g}; transpose={semitones} scope={transpose_scope}; "
+        if tempo_mode=="keep":
+            tempo_report=f"tempo_mode=keep: preserving ABC tempo ({old_bpm:g} BPM); BPM override value is ignored"
+        elif tempo_mode=="override":
+            tempo_report=f"tempo_mode=override: all ABC Q fields set to {bpm:g} BPM"
+        else:
+            tempo_report=(f"tempo_mode=multiplier: each ABC Q BPM scaled by {tempo_multiplier:g}; "
+                          f"initial tempo {old_bpm:g}->{target:g} BPM")
+        report=(f"{tempo_report}; transpose={semitones} scope={transpose_scope}; "
                 f"vocal={vocal_transpose:+d}; instrumental={instrumental_transpose:+d}; "
                 f"octaves={octave_shift:+d}; removed_sections={sorted(drop)}")
         if (transpose_scope in {"vocal_only","instrumental_only"} and semitones%12) or vocal_transpose%12 or instrumental_transpose%12:
@@ -750,7 +766,7 @@ class MelodyCleanup:
                                 out.append("z"+duration)
                             else:
                                 state_key=_note_state_key(match)
-                                base_pitch=12*(state_key[1]+1)+PC[match.group("letter").upper()]
+                                base_pitch=12*(_note_octave(match)+1)+PC[state_key]
                                 if match.group("acc"):
                                     # Retain explicit source spelling and carry its accidental
                                     # into the destination state only for notes that remain.

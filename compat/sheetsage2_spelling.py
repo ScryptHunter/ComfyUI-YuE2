@@ -1,9 +1,10 @@
 """Apply ComfyUI's SheetSage2 key-aware chord spelling to legacy ABC output.
 
 The native audio encoder already performs this correction while rebuilding
-ABC. Legacy HF snapshots can contain older notation code, so their returned
-score is normalized here using the implementation shipped by ComfyUI rather
-than carrying a second copy of the spelling algorithm.
+ABC. Legacy HF snapshots can contain older notation code, so quoted chord
+spelling is corrected here using the implementation shipped by ComfyUI rather
+than carrying a second copy of the spelling algorithm. Key labels are preserved
+because changing them alone can reinterpret the existing melody notes.
 """
 from __future__ import annotations
 
@@ -49,15 +50,20 @@ def _load_core_helpers() -> tuple[Callable[[str, str], str], Callable[[str], str
     return correct_chord_spelling, normalize_key_name
 
 
-def _normalize_abc_key(value: str, normalizer: Callable[[str], str]) -> tuple[str, str | None]:
+def _canonical_chord_key(value: str, normalizer: Callable[[str], str]) -> str | None:
     match = _KEY_VALUE_RE.fullmatch(value)
     if match is None:
-        return value, None
+        return None
     trailing = match.group("after").lstrip()
+    alias = (match.group("mode") or "").lower()
+    if not alias:
+        spaced = re.match(r"(major|minor|maj|min|m)(?=\s|%|$)", trailing, re.IGNORECASE)
+        if spaced:
+            alias = spaced.group(1).lower()
+            trailing = trailing[spaced.end():].lstrip()
     if trailing and not trailing.startswith("%") and re.match(r"[A-Za-z]+(?:\s|$)", trailing):
         # A separated mode name is not a key-field attribute such as clef=.
-        return value, None
-    alias = (match.group("mode") or "").lower()
+        return None
     mode = "minor" if alias in {"m", "min", "minor"} else "major"
     source_root = match.group("root")
     source_root = source_root[0].upper() + source_root[1:].lower()
@@ -65,12 +71,10 @@ def _normalize_abc_key(value: str, normalizer: Callable[[str], str]) -> tuple[st
         normalized = normalizer(f"{source_root}:{mode}")
         root, normalized_mode = normalized.split(":", 1)
     except (ValueError, KeyError, TypeError):
-        return value, None
+        return None
     if normalized_mode != mode or not re.fullmatch(r"[A-G](?:#|b)?", root):
-        return value, None
-    rewritten = (match.group("before") + root + (match.group("mode") or "")
-                 + match.group("after"))
-    return rewritten, normalized
+        return None
+    return normalized
 
 
 def _rewrite_chord(text: str, key: str | None,
@@ -122,8 +126,8 @@ def _rewrite_line(line: str, key: str | None,
             if end < 0:
                 out.append(line[i:])
                 break
-            value, key = _normalize_abc_key(line[i + 3:end], normalizer)
-            out.append("[K:" + value + "]")
+            key = _canonical_chord_key(line[i + 3:end], normalizer)
+            out.append(line[i:end + 1])
             i = end + 1
             continue
         if line[i] == '"':
@@ -147,7 +151,7 @@ def correct_abc_chord_spellings(
     corrector: Callable[[str, str], str] | None = None,
     normalizer: Callable[[str], str] | None = None,
 ) -> str:
-    """Canonicalize keys and correct quoted chord roots relative to them.
+    """Correct quoted chord roots using canonical keys without changing K fields.
 
     Notes, durations, barlines, slash-bass text, quality suffixes, comments,
     and line endings are preserved. Inline ``[K:...]`` changes take effect
@@ -169,8 +173,7 @@ def correct_abc_chord_spellings(
         newline = line[len(content):]
         key_line = _KEY_LINE_RE.match(content)
         if key_line:
-            value, current_key = _normalize_abc_key(key_line.group("value"), normalizer)
-            content = key_line.group("prefix") + value
+            current_key = _canonical_chord_key(key_line.group("value"), normalizer)
         rewritten, current_key = _rewrite_line(content, current_key, corrector, normalizer)
         output.append(rewritten + newline)
     return "".join(output)

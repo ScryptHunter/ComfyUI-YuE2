@@ -114,15 +114,15 @@ def test_legacy_abc_adapter_preserves_unsupported_chords_and_no_key_scores(sheet
     ) == '"A#unsupported" C|\nK:G\n"Bb" D|\n'
 
 
-def test_header_and_inline_keys_are_canonicalized_without_changing_timing_or_crlf():
+def test_header_and_inline_keys_stay_source_preserving_with_canonical_chord_context():
     normalizer = Mock(side_effect=lambda key: {"D#:major": "Eb:major"}.get(key, key))
     corrector = Mock(side_effect=lambda chord, key: "Eb:maj" if (
         chord == "D#:maj" and key == "Eb:major"
     ) else chord)
     source = ('X:1\r\nK:  D#  % original key\r\nV:Vocal\r\n'
               '"D#" C2|[K: D# ]"D#" D2| % "D#" in comment\r\n')
-    expected = ('X:1\r\nK:  Eb  % original key\r\nV:Vocal\r\n'
-                '"Eb" C2|[K: Eb ]"Eb" D2| % "D#" in comment\r\n')
+    expected = ('X:1\r\nK:  D#  % original key\r\nV:Vocal\r\n'
+                '"Eb" C2|[K: D# ]"Eb" D2| % "D#" in comment\r\n')
     assert correct_abc_chord_spellings(
         source, corrector=corrector, normalizer=normalizer,
     ) == expected
@@ -135,6 +135,8 @@ def test_header_and_inline_keys_are_canonicalized_without_changing_timing_or_crl
 @pytest.mark.parametrize("label,mode", [
     ("A", "major"), ("Amaj", "major"), ("Amajor", "major"),
     ("Am", "minor"), ("Amin", "minor"), ("Aminor", "minor"),
+    ("A major", "major"), ("A maj", "major"),
+    ("A minor", "minor"), ("A min", "minor"), ("A m", "minor"),
 ])
 def test_common_abc_key_aliases_use_the_correct_core_mode(label, mode):
     normalizer = Mock(side_effect=lambda key: key)
@@ -145,6 +147,21 @@ def test_common_abc_key_aliases_use_the_correct_core_mode(label, mode):
     ) == source
     normalizer.assert_called_once_with(f"A:{mode}")
     corrector.assert_called_once_with("C:maj", f"A:{mode}")
+
+
+@pytest.mark.parametrize("label,mode", [
+    ("A major", "major"), ("A maj", "major"),
+    ("A minor", "minor"), ("A min", "minor"), ("A m", "minor"),
+])
+def test_spaced_inline_key_alias_preserves_source_and_updates_chord_context(label, mode):
+    normalizer = Mock(side_effect=lambda key: key)
+    corrector = Mock(side_effect=lambda chord, key: "Eb:maj" if key == f"A:{mode}" else chord)
+    source = f'K:C\r\n"D#" C|[K:{label}]"D#" D| % comment "D#"\r\n'
+    expected = f'K:C\r\n"D#" C|[K:{label}]"Eb" D| % comment "D#"\r\n'
+    assert correct_abc_chord_spellings(
+        source, corrector=corrector, normalizer=normalizer,
+    ) == expected
+    assert [call.args[1] for call in corrector.call_args_list] == ["C:major", f"A:{mode}"]
 
 
 def test_flat_key_root_is_passed_to_core_with_its_accidental_intact():
@@ -162,22 +179,39 @@ def test_inline_key_change_updates_the_key_used_for_following_chords():
     normalizer = Mock(side_effect=lambda key: {"D#:major": "Eb:major"}.get(key, key))
     corrector = Mock(side_effect=lambda chord, key: "Eb:maj" if key == "Eb:major" else chord)
     source = 'K:A\n"D#" C|[K:D#]"D#" D|\n'
-    expected = 'K:A\n"D#" C|[K:Eb]"Eb" D|\n'
+    expected = 'K:A\n"D#" C|[K:D#]"Eb" D|\n'
     assert correct_abc_chord_spellings(
         source, corrector=corrector, normalizer=normalizer,
     ) == expected
     assert [call.args[1] for call in corrector.call_args_list] == ["A:major", "Eb:major"]
 
 
-def test_unsupported_modal_key_does_not_reuse_the_previous_key():
-    normalizer = Mock(side_effect=lambda key: key)
+def test_enharmonic_header_key_does_not_reinterpret_bare_melody_notes():
+    normalizer = Mock(side_effect=lambda key: {"C#:major": "Db:major"}.get(key, key))
     corrector = Mock(side_effect=lambda chord, key: chord)
-    source = 'K:A\n"C"|[K:Ddor]"D#"|[K:Emix]"D#"|\nK:F lyd\n"D#"|\n'
+    source = "K:C#\r\nV:Vocal\r\nC D E F|\r\n"
     assert correct_abc_chord_spellings(
         source, corrector=corrector, normalizer=normalizer,
     ) == source
-    normalizer.assert_called_once_with("A:major")
-    corrector.assert_called_once_with("C:maj", "A:major")
+    normalizer.assert_called_once_with("C#:major")
+    corrector.assert_not_called()
+
+
+def test_unsupported_modal_key_does_not_reuse_the_previous_key():
+    normalizer = Mock(side_effect=lambda key: key)
+    corrector = Mock(side_effect=lambda chord, key: chord)
+    source = ('K:A\n"C"|[K:Ddor]"D#"|[K:D dor]"D#"|'
+              '[K:Emix]"D#"|[K:E mixolydian]"D#"|\n'
+              'K:F lyd\n"D#"|\nK:A minor\n"C"|\n')
+    assert correct_abc_chord_spellings(
+        source, corrector=corrector, normalizer=normalizer,
+    ) == source
+    assert [call.args for call in normalizer.call_args_list] == [
+        ("A:major",), ("A:minor",),
+    ]
+    assert [call.args for call in corrector.call_args_list] == [
+        ("C:maj", "A:major"), ("C:maj", "A:minor"),
+    ]
 
 
 @pytest.mark.parametrize("available", ["correct_chord_spelling", "normalize_key_name"])

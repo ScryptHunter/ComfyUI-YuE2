@@ -39,12 +39,22 @@ def _require_fl_pair(ar_name,nar_name,auto_load_paired_nar,backend):
     require_fl(ar)
     require_fl(nar)
     if ar and not nar and auto_load_paired_nar:
-        nar=paired_nar(ar,_roots())
+        nar=paired_nar(ar,_roots(),required=True)
     require_fl(nar)
 
 def _algorithm_labels(bundle):
     names={'lora':'LoRA','lokr':'LoKr','delta':'Dense delta'}
     return ', '.join(names.get(value,value) for value in sorted(bundle.algorithms))
+
+def _adapter_diagnostics(bundle, ar_strength, nar_strength):
+    lines=(f"Format: {bundle.format_name}", f"Algorithm: {_algorithm_labels(bundle)}",
+           f"Branches: {', '.join(b.upper() for b in sorted(bundle.branches))}",
+           f"Targets: {len(bundle.patches)}", f"Strength: AR={ar_strength} NAR={nar_strength}")
+    paired=bundle.info.get('paired_nar')
+    detail=f"\nPaired NAR: {Path(paired).name}" if paired else ""
+    if bundle.dependencies:
+        detail+=f"\nAdapter dependencies: {bundle.dependencies}"
+    print("[ComfyUI-YuE2] Universal Adapter\n"+"\n".join(lines)+detail)
 
 class YuE2LoraLoader:
     PIPE_TYPE = "YUE2_PIPE"
@@ -70,7 +80,7 @@ class YuE2LoraLoader:
                    auto_load_paired_nar=True, nar_lora_override="none", **kwargs):
         ar, nar = _path(ar_lora), _path(nar_lora_override)
         if ar and not nar and auto_load_paired_nar:
-            nar = paired_nar(ar, _roots())
+            nar = paired_nar(ar, _roots(), required=True)
         return (fingerprint(ar) if ar else None, fingerprint(nar) if nar else None,
                 ar_strength, nar_strength, auto_load_paired_nar)
 
@@ -114,17 +124,18 @@ class YuE2UniversalAdapterLoader:
 
     @classmethod
     def IS_CHANGED(cls, adapter="none", ar_strength=1.0, nar_strength=1.0, enabled=True, **kwargs):
+        if not enabled: return (None, ar_strength, nar_strength, enabled)
         path = _path(adapter)
         if not path: return (None, ar_strength, nar_strength, enabled)
         bundle = parse_adapter(path)
         return (bundle.source_files, bundle.sha256s, tuple((d.path,d.sha256) for d in bundle.dependencies), ar_strength, nar_strength, enabled)
 
     def load(self, pipeline, adapter="none", ar_strength=1.0, nar_strength=1.0, enabled=True):
+        if not enabled: return (pipeline,)
         path = _path(adapter)
         if not path: return (pipeline,)
         bundle = parse_adapter(path)
-        print(f"[ComfyUI-YuE2] Universal Adapter\nFormat: {bundle.format_name}\nAlgorithm: {_algorithm_labels(bundle)}\nBranches: {', '.join(b.upper() for b in sorted(bundle.branches))}\nTargets: {len(bundle.patches)}\nStrength: AR={ar_strength} NAR={nar_strength}")
-        if bundle.dependencies: print(f"[ComfyUI-YuE2] Adapter dependencies: {bundle.dependencies}")
+        _adapter_diagnostics(bundle, ar_strength, nar_strength)
         return (apply_legacy(pipeline, bundle, ar_strength, nar_strength, enabled),)
 
 class YuE2NativeUniversalAdapterLoader(YuE2UniversalAdapterLoader):
@@ -132,10 +143,11 @@ class YuE2NativeUniversalAdapterLoader(YuE2UniversalAdapterLoader):
     RETURN_TYPES = (PIPE_TYPE,)
     CATEGORY = "YuE2/Native ComfyUI"
     def load(self, pipeline, adapter="none", ar_strength=1.0, nar_strength=1.0, enabled=True):
+        if not enabled: return (pipeline,)
         path = _path(adapter)
         if not path: return (pipeline,)
         bundle = parse_adapter(path)
-        print(f"[ComfyUI-YuE2] Universal Adapter\nFormat: {bundle.format_name}\nAlgorithm: {_algorithm_labels(bundle)}\nBranches: {', '.join(b.upper() for b in sorted(bundle.branches))}\nTargets: {len(bundle.patches)}\nStrength: AR={ar_strength} NAR={nar_strength}")
+        _adapter_diagnostics(bundle, ar_strength, nar_strength)
         return (apply_native(pipeline, bundle, ar_strength, nar_strength, enabled),)
 NODE_CLASS_MAPPINGS = {"YuE2LoraLoader": YuE2LoraLoader, "YuE2NativeLoraLoader": YuE2NativeLoraLoader, "YuE2UniversalAdapterLoader": YuE2UniversalAdapterLoader, "YuE2NativeUniversalAdapterLoader": YuE2NativeUniversalAdapterLoader}
 NODE_DISPLAY_NAME_MAPPINGS = {"YuE2LoraLoader": "FL-YuE2 LoRA Pair Loader — Legacy",

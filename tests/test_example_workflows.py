@@ -217,6 +217,23 @@ def test_native_planned_subgraphs_have_auto_duration_manual_vocal_and_universal_
     assert next(i for i in outer["inputs"] if i["name"] == "mode_1")["label"] == "Vocal Mode"
 
 
+def test_native_notes_explain_style_lyrics_tempo_pairing_and_ceiling():
+    for filename in ("YuE2_Native_Text_to_Song.json", "YuE2_Native_Reference_Remix.json"):
+        data = read_workflow(filename)
+        note = node_by_type(data, "MarkdownNote")
+        text = note["widgets_values"][0]
+        assert text == note["widgets_values_named"]["text"]
+        for phrase in ("Style", "Lyrics", "Tempo Mode = keep", "Tempo Mode = override",
+                       "AR", "NAR", "hard ceiling", "acoustic_adapter"):
+            assert phrase in text
+    text = read_workflow("YuE2_Native_Text_to_Song.json")
+    subgraph = text["definitions"]["subgraphs"][0]
+    outer = next(node for node in text["nodes"] if node["type"] == subgraph["id"])
+    for inputs in (subgraph["inputs"], outer["inputs"]):
+        bpm = next(item for item in inputs if item["name"] == "bpm")
+        assert bpm["label"] == "BPM (used with Tempo Mode = override)"
+
+
 def test_legacy_remix_duration_uses_sampling_settings_override_and_memory_preset():
     data = read_workflow("YuE2_Reference_Remix.json")
     nodes = graph_nodes(data)

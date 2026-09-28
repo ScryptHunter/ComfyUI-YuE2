@@ -62,6 +62,43 @@ class ABCModifierTests(unittest.TestCase):
         self.assertEqual(pitches[3:], [66, 60, 62])
         self.assertEqual(len(pitches), 6)
 
+    def test_accidental_state_crosses_octaves_and_resets_at_barline(self):
+        source = "K:C\nV:Vocal\n^F f =f F|F f|_B b =b B|B b|\n"
+        self.assertEqual([pitch for _, _, pitch in self.mod.score_notes(source)],
+                         [66, 78, 77, 65, 65, 77, 70, 82, 83, 71, 71, 83])
+
+    def test_cross_octave_accidentals_preserve_pitch_when_transposed(self):
+        for music, expected in (("^F f|", [66, 78]), ("^f F|", [78, 66]),
+                                ("_B b =b B|B b|", [70, 82, 83, 71, 71, 83])):
+            with self.subTest(music=music):
+                source = f"K:C\nV:Vocal\n{music}\n"
+                before = [pitch for _, _, pitch in self.mod.score_notes(source)]
+                self.assertEqual(before, expected)
+                output, _ = self.mod.ABCModifier().modify(
+                    source, "keep", 120, 1, "whole_score", 1, False, "",
+                )
+                after = [pitch for _, _, pitch in self.mod.score_notes(output)]
+                self.assertEqual(after, [pitch + 1 for pitch in before], output)
+                self.assertIn("K:Db", output)
+
+    def test_whole_score_transpose_uses_supported_canonical_keys(self):
+        cases = (("C", 3, "Eb"), ("C", 8, "Ab"), ("C", 10, "Bb"),
+                 ("B", 2, "Db"), ("C", 12, "C"),
+                 ("Am", 1, "Bbm"), ("Em", -5, "Bm"),
+                 ("C#minor", 2, "Ebminor"), ("Bminor", 2, "C#minor"))
+        for key, shift, expected_key in cases:
+            with self.subTest(key=key, shift=shift):
+                source = f"K:{key}\nV:Vocal\nC D E F G A B|\n"
+                before = [pitch for _, _, pitch in self.mod.score_notes(source)]
+                output, _ = self.mod.ABCModifier().modify(
+                    source, "keep", 120, 1, "whole_score", shift, False, "",
+                )
+                after = [pitch for _, _, pitch in self.mod.score_notes(output)]
+                self.assertIn(f"K:{expected_key}\n", output)
+                self.assertEqual(after, [pitch + shift for pitch in before], output)
+                root, _, minor = self.mod._key_parts(expected_key)
+                self.assertIn(root, self.mod.FIFTHS_MINOR if minor else self.mod.FIFTHS_MAJOR)
+
     def test_inline_meter_and_unit_fields_are_preserved_and_not_notes(self):
         source = "K:C\nV:Vocal\nC [M:4/4] D [L:1/16] E\n"
         before = self.mod.score_notes(source)
@@ -99,6 +136,36 @@ class ABCModifierTests(unittest.TestCase):
             with self.subTest(chord=chord):
                 self.assertEqual(self.mod._transpose_chords(chord, 2), up)
                 self.assertEqual(self.mod._transpose_chords(chord, -2), down)
+
+    def test_whole_score_chords_follow_canonical_destination_key(self):
+        source = 'K:C\r\nV:Vocal\r\n"C" C|[K:C] "C" C| % "C" unchanged\r\n'
+        before = [pitch for _, _, pitch in self.mod.score_notes(source)]
+        for shift, key in ((1, "Db"), (3, "Eb"), (6, "F#"), (8, "Ab"), (10, "Bb")):
+            with self.subTest(shift=shift):
+                output, _ = self.mod.ABCModifier().modify(
+                    source, "keep", 120, 1, "whole_score", shift, False, "",
+                )
+                self.assertIn(f'K:{key}\r\n', output)
+                self.assertIn(f'[K:{key}] "{key}"', output)
+                self.assertEqual(output.count(f'"{key}"'), 2)
+                self.assertIn('% "C" unchanged\r\n', output)
+                after = [pitch for _, _, pitch in self.mod.score_notes(output)]
+                self.assertEqual(after, [pitch + shift for pitch in before])
+
+    def test_whole_score_chord_slash_basses_use_destination_spelling(self):
+        source = ('K:C\nV:Vocal\n'
+                  '"E/G#" C "D#maj7/F##" D "Bb7/Db" E "C6/9" F|\n')
+        output, _ = self.mod.ABCModifier().modify(
+            source, "keep", 120, 1, "whole_score", 2, False, "",
+        )
+        self.assertIn('K:D\n', output)
+        for chord in ('"F#/A#"', '"Fmaj7/A"', '"C7/D#"', '"D6/9"'):
+            self.assertIn(chord, output)
+        self.assertEqual(
+            [new[2] - old[2] for old, new in zip(self.mod.score_notes(source),
+                                                   self.mod.score_notes(output))],
+            [2, 2, 2, 2],
+        )
 
     def test_noop_is_byte_for_byte_source_preserving(self):
         source = "X:1\r\nK: C  \r\nV:Vocal\r\nCDEF  |  [K:G] F  % keep spacing\r\n\r\n"
@@ -223,6 +290,19 @@ class ABCModifierTests(unittest.TestCase):
             source, "keep", 100, 2, "none", 0, False, "",
         )
         self.assertEqual(modified, source)
+
+    def test_bpm_input_is_only_an_override_and_report_is_explicit(self):
+        source = "M:4/4\nL:1/4\nQ:1/4=125\nV:Vocal\nCCCC|\n"
+        modifier = self.mod.ABCModifier()
+        kept, keep_report = modifier.modify(source, "keep", 100, 2, "none", 0, False, "")
+        self.assertEqual(kept, source)
+        self.assertIn("BPM override value is ignored", keep_report)
+        overridden, override_report = modifier.modify(source, "override", 100, 1, "none", 0, False, "")
+        self.assertIn("Q:1/4=100", overridden)
+        self.assertIn("100 BPM", override_report)
+        multiplied, multiplier_report = modifier.modify(source, "multiplier", 100, 2, "none", 0, False, "")
+        self.assertIn("Q:1/4=250", multiplied)
+        self.assertIn("125->250 BPM", multiplier_report)
 
     def test_inline_meter_length_and_tempo_fields_apply_at_position(self):
         source = "M:4/4\nL:1/4\nQ:1/4=120\nV:Vocal\nCCCC|[Q:1/4=60]CCCC|\n"
@@ -383,6 +463,16 @@ class ABCModifierTests(unittest.TestCase):
         self.assertEqual(len(kept), 1)
         self.assertEqual(kept[0][2], original[1][2])
         self.assertIn("short_notes_removed=1", report)
+
+    def test_melody_cleanup_preserves_cross_octave_inherited_accidental(self):
+        source = "K:C\nL:1/32\nQ:1/4=120\nV:Vocal\n^F f4|\n"
+        original = self.mod.score_notes(source)
+        output, _ = self.mod.MelodyCleanup().clean(
+            source, "custom", 100, False, 24,
+        )
+        self.assertEqual([pitch for _, _, pitch in self.mod.score_notes(output)],
+                         [original[1][2]])
+        self.assertIn("z ^f4|", output)
 
     def test_melody_cleanup_uses_L_and_Q_beat_unit_for_note_timing(self):
         source = "K:C\nL:1/8\nQ:1/8=120\nV:Vocal\nC|\n"

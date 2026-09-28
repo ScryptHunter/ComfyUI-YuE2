@@ -18,8 +18,7 @@ def parse(path,meta,keys,sidecar,stack):
                 raise ValueError(f'FL rank metadata disagrees with {patch.target}')
     ref=meta.get('acoustic_adapter') if branch=='ar' else None
     if not ref:return result
-    companion=paired_nar(path,(path.parent,path.parent.parent))
-    if not companion:return result  # historical AR-only warning/fallback
+    companion=paired_nar(path,(path.parent,path.parent.parent),required=True)
     from ..detect import parse_adapter
     nar=parse_adapter(companion,_stack=stack)
     if nar.branches!={'nar'}: raise ValueError('FL acoustic_adapter must resolve only to an FL NAR adapter')
